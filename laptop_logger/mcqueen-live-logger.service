@@ -1,0 +1,16 @@
+[Unit]
+Description=McQueen phone-controlled RGB depth YOLO dataset logger
+After=network.target
+
+[Service]
+Type=simple
+User=kartik
+Group=kartik
+WorkingDirectory=/home/kartik/McQueenLiveLogger
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/kartik/McQueenLiveLogger/phone_logger_server.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
