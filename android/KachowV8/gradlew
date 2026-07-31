@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GRADLE_VERSION="9.4.1"
+BASE_DIR="${GRADLE_USER_HOME:-$HOME/.gradle}/mcqueen-bootstrap"
+GRADLE_HOME="$BASE_DIR/gradle-$GRADLE_VERSION"
+ZIP_FILE="$BASE_DIR/gradle-$GRADLE_VERSION-bin.zip"
+
+if [ ! -x "$GRADLE_HOME/bin/gradle" ]; then
+    mkdir -p "$BASE_DIR"
+    echo "Downloading Gradle $GRADLE_VERSION..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -L --fail --retry 3 \
+            "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip" \
+            -o "$ZIP_FILE"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -O "$ZIP_FILE" \
+            "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip"
+    else
+        echo "Install curl or wget, then run this command again." >&2
+        exit 1
+    fi
+
+    rm -rf "$GRADLE_HOME"
+    unzip -q "$ZIP_FILE" -d "$BASE_DIR"
+fi
+
+exec "$GRADLE_HOME/bin/gradle" "$@"
