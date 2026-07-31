@@ -1,5 +1,3 @@
-# UNOQ
+# uno q
 
-current car control code
-
-contains the teleop receiver mcu sketch automatic startup services and experimental vision pipeline
+current motor steering phone control startup services and experimental camera pipeline
