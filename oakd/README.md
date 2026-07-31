@@ -1,3 +1,3 @@
 # oak d
 
-oak d depthai yolo and data logging experiments
+depthai yolo and camera data logging experiments
