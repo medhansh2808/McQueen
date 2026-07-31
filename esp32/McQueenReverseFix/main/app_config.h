@@ -1,0 +1,3 @@
+#pragma once
+#define APP_STEER_FIELD_INDEX 1
+#define APP_THROTTLE_FIELD_INDEX 2
