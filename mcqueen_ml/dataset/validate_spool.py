@@ -9,8 +9,7 @@ from pathlib import Path
 from PIL import Image
 
 
-EXPECTED_RGB_SIZE = (1920, 1080)
-EXPECTED_DEPTH_SIZE = (640, 360)
+EXPECTED_RGB_SIZE = (1280, 720)
 
 
 @dataclass
@@ -60,9 +59,15 @@ def validate_episode(episode: Path) -> EpisodeResult:
     metadata = load_json(metadata_path)
     rows = load_jsonl(frames_path)
 
+    if metadata.get("schema_version") != "mcqueen-rgb-spool-v1":
+        issues.append(
+            f"schema_version={metadata.get('schema_version')!r}; "
+            "expected 'mcqueen-rgb-spool-v1'"
+        )
+
     if metadata.get("status") != "completed":
         issues.append(
-            f"episode status is {metadata.get('status')!r}, expected 'completed'"
+            f"episode status is {metadata.get('status')!r}; expected 'completed'"
         )
 
     declared_count = metadata.get("frame_count")
@@ -81,14 +86,10 @@ def validate_episode(episode: Path) -> EpisodeResult:
         "timestamp_s",
         "frame_index",
         "observation.images.front_rgb",
-        "observation.images.front_depth",
-        "action.steering_command",
-        "action.throttle_command",
         "action.servo_angle",
         "action.motor_pwm",
         "task",
     }
-
     timestamps: list[float] = []
 
     for expected_index, row in enumerate(rows):
@@ -100,22 +101,28 @@ def validate_episode(episode: Path) -> EpisodeResult:
             )
             continue
 
-        frame_index = int(row["frame_index"])
-        if frame_index != expected_index:
+        if int(row["frame_index"]) != expected_index:
             issues.append(
-                f"frame position {expected_index}: stored frame_index={frame_index}"
+                f"frame position {expected_index}: "
+                f"stored frame_index={row['frame_index']}"
             )
 
         timestamps.append(float(row["timestamp_s"]))
-
         rgb_path = episode / row["observation.images.front_rgb"]
-        depth_path = episode / row["observation.images.front_depth"]
 
         if not rgb_path.is_file():
             issues.append(f"missing RGB file: {rgb_path}")
 
-        if not depth_path.is_file():
-            issues.append(f"missing depth file: {depth_path}")
+        servo_angle = int(row["action.servo_angle"])
+        motor_pwm = int(row["action.motor_pwm"])
+
+        if not 0 <= servo_angle <= 180:
+            issues.append(
+                f"frame {expected_index}: invalid servo angle {servo_angle}"
+            )
+
+        if not -255 <= motor_pwm <= 255:
+            issues.append(f"frame {expected_index}: invalid motor PWM {motor_pwm}")
 
     if any(
         current <= previous
@@ -134,46 +141,27 @@ def validate_episode(episode: Path) -> EpisodeResult:
 
             if not 9.0 <= actual_hz <= 11.0:
                 issues.append(
-                    f"actual rate {actual_hz:.2f} Hz is outside 9–11 Hz"
+                    f"actual rate {actual_hz:.2f} Hz is outside 9-11 Hz"
                 )
 
     for index in sorted({0, len(rows) - 1}):
         row = rows[index]
         rgb_path = episode / row["observation.images.front_rgb"]
-        depth_path = episode / row["observation.images.front_depth"]
 
         if rgb_path.is_file():
             with Image.open(rgb_path) as image:
                 if image.size != EXPECTED_RGB_SIZE:
                     issues.append(
-                        f"{rgb_path}: RGB size {image.size}, "
+                        f"{rgb_path}: RGB size {image.size}; "
                         f"expected {EXPECTED_RGB_SIZE}"
                     )
 
                 if image.mode != "RGB":
                     issues.append(
-                        f"{rgb_path}: RGB mode {image.mode}, expected RGB"
+                        f"{rgb_path}: RGB mode {image.mode}; expected RGB"
                     )
 
-        if depth_path.is_file():
-            with Image.open(depth_path) as image:
-                if image.size != EXPECTED_DEPTH_SIZE:
-                    issues.append(
-                        f"{depth_path}: depth size {image.size}, "
-                        f"expected {EXPECTED_DEPTH_SIZE}"
-                    )
-
-                if image.mode not in {"I;16", "I"}:
-                    issues.append(
-                        f"{depth_path}: depth mode {image.mode}, expected I;16 or I"
-                    )
-
-    return EpisodeResult(
-        path=episode,
-        frames=len(rows),
-        actual_hz=actual_hz,
-        issues=issues,
-    )
+    return EpisodeResult(episode, len(rows), actual_hz, issues)
 
 
 def main() -> int:
@@ -185,7 +173,6 @@ def main() -> int:
         help="Directory containing episode_* folders",
     )
     args = parser.parse_args()
-
     root = args.input.expanduser().resolve()
 
     if not root.is_dir():
@@ -234,7 +221,6 @@ def main() -> int:
     print(f"Episodes: {len(episodes)}")
     print(f"Frames:   {total_frames}")
     print(f"Result:   {'FAILED' if failed else 'PASSED'}")
-
     return 1 if failed else 0
 
 
