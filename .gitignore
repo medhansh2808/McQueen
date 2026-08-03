@@ -43,3 +43,29 @@ detections/
 *.swo
 
 *.log
+
+# McQueen generated artifacts
+data/
+datasets/
+outputs/
+checkpoints/
+wandb/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tar.gz
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
