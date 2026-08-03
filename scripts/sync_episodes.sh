@@ -22,3 +22,8 @@ rsync \
 
 echo
 echo "PHASE 4 COMPLETE"
+
+# BEGIN AUTO INSPECTION
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/generate_inspection.py" "${LOCAL_SPOOL:-$HOME/McQueenData/spool}"
+# END AUTO INSPECTION
