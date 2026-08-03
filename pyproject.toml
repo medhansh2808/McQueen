@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=71"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcqueen-ml"
+version = "0.1.0"
+description = "Dataset, training, evaluation and deployment tools for McQueen"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["mcqueen_ml*"]
