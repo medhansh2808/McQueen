@@ -205,8 +205,8 @@ def main() -> int:
                         "action": action,
                         "mcqueen.raw_actuator": raw_actuator,
                         "mcqueen.source_timestamp_s": source_timestamp,
-                    },
-                    task=task,
+                        "task": task,
+                    }
                 )
                 total_frames += 1
 
