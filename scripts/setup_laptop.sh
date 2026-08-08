@@ -57,9 +57,9 @@ echo "===== INSTALLING CUDA PYTORCH ====="
   --index-url https://download.pytorch.org/whl/cu128
 
 echo
-echo "===== INSTALLING LEROBOT + W&B + VISUALIZATION ====="
+echo "===== INSTALLING LEROBOT + W&B ====="
 "$CONDA" run -n "$ENV_NAME" python -m pip install \
-  'lerobot[training,dataset_viz]==0.6.0'
+  'lerobot[training]==0.6.0'
 
 echo
 echo "===== INSTALLING MCQUEEN PACKAGE ====="
