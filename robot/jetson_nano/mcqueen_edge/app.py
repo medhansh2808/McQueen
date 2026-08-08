@@ -1,10 +1,6 @@
-"""Single-process McQueen Jetson edge application.
+"""Single-process McQueen Jetson edge application."""
 
-This combines the already-tested UDP teleoperation server and HTTP
-compatibility server. Hardware remains mocked on laptop; a real Jetson backend
-will be plugged in later.
-"""
-
+import argparse
 import time
 
 from .drive import MockDriveBackend
@@ -74,6 +70,10 @@ class EdgeApp:
         if self.teleop.is_alive():
             self.teleop.join(timeout=2.0)
 
+        close_backend = getattr(self.backend, "close", None)
+        if callable(close_backend):
+            close_backend()
+
     @property
     def udp_port(self):
         return self.teleop.port
@@ -83,11 +83,61 @@ class EdgeApp:
         return self.http.port
 
 
-def main():
-    app = EdgeApp()
+def build_backend(args):
+    if not args.jetson:
+        return MockDriveBackend()
+
+    from .jetson_gpio import JetsonDriveBackend
+
+    missing = []
+    if args.servo_left_us is None:
+        missing.append("--servo-left-us")
+    if args.servo_center_us is None:
+        missing.append("--servo-center-us")
+    if args.servo_right_us is None:
+        missing.append("--servo-right-us")
+
+    if missing:
+        raise ValueError(
+            "Jetson mode requires measured servo calibration: {}".format(
+                ", ".join(missing)
+            )
+        )
+
+    return JetsonDriveBackend(
+        servo_left_us=args.servo_left_us,
+        servo_center_us=args.servo_center_us,
+        servo_right_us=args.servo_right_us,
+    )
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="McQueen Jetson edge app")
+    parser.add_argument(
+        "--jetson",
+        action="store_true",
+        help="use real Jetson GPIO/PWM instead of the safe mock backend",
+    )
+    parser.add_argument("--servo-left-us", type=int)
+    parser.add_argument("--servo-center-us", type=int)
+    parser.add_argument("--servo-right-us", type=int)
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv)
+
+    try:
+        backend = build_backend(args)
+    except (ValueError, RuntimeError) as exc:
+        print("ERROR: {}".format(exc), flush=True)
+        return 2
+
+    app = EdgeApp(backend=backend)
     app.start()
 
-    print("McQueen edge app started", flush=True)
+    mode = "JETSON GPIO" if args.jetson else "MOCK"
+    print("McQueen edge app started ({})".format(mode), flush=True)
     print("UDP  : 0.0.0.0:{}".format(app.udp_port), flush=True)
     print("HTTP : http://0.0.0.0:{}".format(app.http_port), flush=True)
 
@@ -100,6 +150,8 @@ def main():
         app.stop()
         print("McQueen edge app stopped", flush=True)
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
