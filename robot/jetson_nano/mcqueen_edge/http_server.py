@@ -1,9 +1,18 @@
-"""HTTP compatibility server for the existing McQueen Android app."""
+"""HTTP compatibility server for the existing McQueen Android app.
+
+Compatible with Python 3.6+ so it runs on the Jetson Nano Ubuntu 18.04 image
+without adding another Python runtime or dependency.
+"""
 
 import json
 import threading
 import time
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+
+
+class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
 
 
 class RuntimeState:
@@ -114,7 +123,10 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(self.runtime_state.snapshot())
             return
 
-        self._json({"ok": False, "success": False, "error": "not found"}, status=404)
+        self._json(
+            {"ok": False, "success": False, "error": "not found"},
+            status=404,
+        )
 
     def do_POST(self):
         path = self.path.split("?", 1)[0]
@@ -131,12 +143,16 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(self.runtime_state.stop_recording())
             return
 
-        self._json({"ok": False, "success": False, "error": "not found"}, status=404)
+        self._json(
+            {"ok": False, "success": False, "error": "not found"},
+            status=404,
+        )
 
 
 class McQueenHTTPServer(threading.Thread):
     def __init__(self, runtime_state=None, bind_host="0.0.0.0", port=8080):
-        super().__init__(name="mcqueen-http", daemon=True)
+        threading.Thread.__init__(self, name="mcqueen-http")
+        self.daemon = True
         self.runtime_state = runtime_state or RuntimeState()
         self.bind_host = str(bind_host)
         self.port = int(port)
