@@ -17,9 +17,9 @@ def steering_to_angle(steering):
     steering = clamp(int(steering), -1000, 1000)
 
     if steering < 0:
-        return 45 + ((steering + 1000) * (80 - 45)) // 1000
+        return 45 + ((steering + 1000) * (90 - 45)) // 1000
 
-    return 80 + (steering * (115 - 80)) // 1000
+    return 90 + (steering * (115 - 90)) // 1000
 
 
 class TeleopServer(threading.Thread):
