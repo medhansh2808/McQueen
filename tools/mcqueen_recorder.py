@@ -6,10 +6,12 @@ import queue
 import select
 import socket
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 JETSON_IP = "192.168.55.1"
 PORT = 5007
@@ -17,6 +19,7 @@ PORT = 5007
 CAMERA_DEVICE = 0
 RECORD_FPS = 10
 TASK = "Imitate expert driving"
+HTTP_PORT = 8080
 
 # ---------- Actuator mapping ----------
 
@@ -125,7 +128,11 @@ def command_worker():
         if command == "q":
             return
 
-threading.Thread(target=command_worker, daemon=True).start()
+if sys.stdin.isatty():
+    threading.Thread(target=command_worker, daemon=True).start()
+    print("Terminal controls enabled: r / s / q")
+else:
+    print("HEADLESS MODE: phone LOG controls episodes")
 
 def write_metadata(status):
     metadata = {
@@ -209,11 +216,98 @@ def stop_episode(status="completed"):
 
     episode_index += 1
 
+
+# ---------- Phone LOG HTTP control ----------
+
+class LogControlHandler(BaseHTTPRequestHandler):
+
+    def log_message(self, format_string, *args):
+        return
+
+    def send_json(self, code, payload):
+        body = json.dumps(payload).encode("utf-8")
+
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        if self.path in ("/", "/status"):
+            self.send_json(
+                200,
+                {
+                    "ok": True,
+                    "logging": recording,
+                    "recording": recording,
+                    "session": session_dir.name,
+                    "episode": (
+                        episode_dir.name
+                        if episode_dir is not None
+                        else ""
+                    ),
+                    "frame_index": frame_index,
+                },
+            )
+            return
+
+        self.send_json(404, {"ok": False, "detail": "not found"})
+
+    def do_POST(self):
+        if self.path == "/api/log/start":
+            action = "r"
+        elif self.path == "/api/log/stop":
+            action = "s"
+        else:
+            self.send_json(
+                404,
+                {"ok": False, "detail": "unknown endpoint"},
+            )
+            return
+
+        request = {
+            "action": action,
+            "event": threading.Event(),
+            "result": None,
+        }
+
+        commands.put(request)
+
+        if not request["event"].wait(timeout=3.0):
+            self.send_json(
+                504,
+                {"ok": False, "detail": "recorder timeout"},
+            )
+            return
+
+        self.send_json(200, request["result"])
+
+
+try:
+    http_server = ThreadingHTTPServer(
+        ("0.0.0.0", HTTP_PORT),
+        LogControlHandler,
+    )
+except OSError as error:
+    raise RuntimeError(
+        "Could not start HTTP logger on port %d: %s"
+        % (HTTP_PORT, error)
+    )
+
+http_thread = threading.Thread(
+    target=http_server.serve_forever,
+    daemon=True,
+)
+http_thread.start()
+
+
 print()
 print("========================================")
 print(" McQueen Dataset Recorder")
 print("========================================")
-print("Phone target      : 192.168.0.134:5007")
+print("Phone control     : 192.168.0.134:5007")
+print("Phone LOG         : http://192.168.0.134:8080")
 print("Jetson            : 192.168.55.1:5007")
 print("Camera            : /dev/video0")
 print("Recording         : 1280x720 @ 10 FPS")
@@ -231,7 +325,36 @@ try:
             except queue.Empty:
                 break
 
-            if command == "r":
+            if isinstance(command, dict):
+                action = command["action"]
+
+                if action == "r":
+                    if recording:
+                        detail = "episode already recording"
+                    else:
+                        start_episode()
+                        detail = "episode started"
+
+                elif action == "s":
+                    if recording:
+                        stop_episode("completed")
+                        detail = "episode stopped"
+                    else:
+                        detail = "no episode recording"
+
+                else:
+                    detail = "unknown action"
+
+                command["result"] = {
+                    "ok": True,
+                    "detail": detail,
+                    "logging": recording,
+                    "recording": recording,
+                    "session": session_dir.name,
+                }
+                command["event"].set()
+
+            elif command == "r":
                 start_episode()
 
             elif command == "s":
@@ -364,6 +487,11 @@ finally:
         stop_episode("interrupted")
 
     shutdown.set()
+
+    http_server.shutdown()
+    http_server.server_close()
+    http_thread.join(timeout=2)
+
     camera_thread.join(timeout=2)
 
     cap.release()
