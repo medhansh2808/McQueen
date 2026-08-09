@@ -1,0 +1,9 @@
+[Unit]
+Description=Start McQueen recorder when Lenovo webcam appears
+
+[Path]
+PathExists=/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0
+Unit=mcqueen-recorder.service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+[Unit]
+Description=McQueen Android auto-discovery responder
+After=network.target
+
+[Service]
+Type=simple
+User=kartik
+WorkingDirectory=/home/kartik/McQueenWork/McQueen
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/kartik/McQueenWork/McQueen/tools/mcqueen_discovery.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
