@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 JETSON_IP = "192.168.55.1"
 PORT = 5007
 
-CAMERA_DEVICE = 0
+CAMERA_DEVICE = "/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0"
 RECORD_FPS = 10
 TASK = "Imitate expert driving"
 HTTP_PORT = 8080
@@ -28,7 +28,7 @@ def clamp(v, lo, hi):
 
 def steering_to_servo_angle(raw_steering):
     # Must exactly match the current Jetson mapping.
-    steering = -clamp(int(raw_steering), -1000, 1000)
+    steering = clamp(int(raw_steering), -1000, 1000)
 
     if steering < 0:
         return 45 + ((steering + 1000) * (90 - 45)) // 1000
@@ -45,7 +45,7 @@ def throttle_to_pwm(raw_throttle, enabled):
 # ---------- Camera ----------
 
 subprocess.run([
-    "v4l2-ctl", "-d", "/dev/video0",
+    "v4l2-ctl", "-d", "/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0",
     "--set-ctrl=power_line_frequency=1",
     "--set-ctrl=auto_exposure=1",
     "--set-ctrl=exposure_time_absolute=200",
@@ -60,7 +60,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 cap.set(cv2.CAP_PROP_FPS, 30)
 
 if not cap.isOpened():
-    raise RuntimeError("Could not open /dev/video0")
+    raise RuntimeError("Could not open /dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0")
 
 camera_lock = threading.Lock()
 latest_frame = None
@@ -142,7 +142,7 @@ def write_metadata(status):
         "frame_count": frame_index,
         "recording_fps": RECORD_FPS,
         "camera": {
-            "device": "/dev/video0",
+            "device": "/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0",
             "width": 1280,
             "height": 720,
         },
@@ -309,7 +309,7 @@ print("========================================")
 print("Phone control     : 192.168.0.134:5007")
 print("Phone LOG         : http://192.168.0.134:8080")
 print("Jetson            : 192.168.55.1:5007")
-print("Camera            : /dev/video0")
+print("Camera            : /dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0")
 print("Recording         : 1280x720 @ 10 FPS")
 print("Servo labels      : 45..115 deg, center 90")
 print("Motor labels      : -255..255")
