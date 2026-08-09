@@ -1,0 +1,14 @@
+[Unit]
+Description=McQueen phone-controlled dataset recorder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kartik
+WorkingDirectory=/home/kartik/McQueenWork/McQueen
+Environment=PYTHONUNBUFFERED=1
+ExecStartPre=/usr/bin/test -e /dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0
+ExecStart=/usr/bin/python3 /home/kartik/McQueenWork/McQueen/tools/mcqueen_recorder.py
+Restart=on-failure
+RestartSec=3
