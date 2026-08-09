@@ -12,10 +12,6 @@ from PIL import Image
 from lerobot.datasets import LeRobotDataset
 
 
-SERVO_CENTER_DEG = 80.0
-SERVO_HALF_RANGE_DEG = 35.0
-MAX_MOTOR_PWM = 255.0
-
 
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as file:
@@ -34,15 +30,6 @@ def load_jsonl(path: Path) -> list[dict]:
     return rows
 
 
-def normalize_steering(servo_angle: float) -> float:
-    value = (servo_angle - SERVO_CENTER_DEG) / SERVO_HALF_RANGE_DEG
-    return float(np.clip(value, -1.0, 1.0))
-
-
-def normalize_throttle(motor_pwm: float) -> float:
-    return float(np.clip(motor_pwm / MAX_MOTOR_PWM, -1.0, 1.0))
-
-
 def build_features() -> dict:
     return {
         "observation.images.front_rgb": {
@@ -51,11 +38,6 @@ def build_features() -> dict:
             "names": ["height", "width", "channel"],
         },
         "action": {
-            "dtype": "float32",
-            "shape": (2,),
-            "names": ["steering", "throttle"],
-        },
-        "mcqueen.raw_actuator": {
             "dtype": "float32",
             "shape": (2,),
             "names": ["servo_angle_deg", "motor_pwm"],
@@ -150,7 +132,7 @@ def main() -> int:
         repo_id=args.repo_id,
         root=output_root,
         fps=args.fps,
-        robot_type="mcqueen_uno_q",
+        robot_type="mcqueen_jetson_nano",
         features=build_features(),
         use_videos=False,
         image_writer_threads=4,
@@ -184,16 +166,9 @@ def main() -> int:
                 servo_angle = float(row["action.servo_angle"])
                 motor_pwm = float(row["action.motor_pwm"])
                 action = np.asarray(
-                    [
-                        normalize_steering(servo_angle),
-                        normalize_throttle(motor_pwm),
-                    ],
-                    dtype=np.float32,
-                )
-                raw_actuator = np.asarray(
-                    [servo_angle, motor_pwm],
-                    dtype=np.float32,
-                )
+                [servo_angle, motor_pwm],
+                dtype=np.float32,
+            )
                 source_timestamp = np.asarray(
                     [float(row["timestamp_s"])],
                     dtype=np.float32,
@@ -203,8 +178,7 @@ def main() -> int:
                     {
                         "observation.images.front_rgb": rgb,
                         "action": action,
-                        "mcqueen.raw_actuator": raw_actuator,
-                        "mcqueen.source_timestamp_s": source_timestamp,
+                            "mcqueen.source_timestamp_s": source_timestamp,
                         "task": task,
                     }
                 )

@@ -28,7 +28,7 @@ def clamp(v, lo, hi):
 
 def steering_to_servo_angle(raw_steering):
     # Must exactly match the current Jetson mapping.
-    steering = -clamp(int(raw_steering), -1000, 1000)
+    steering = clamp(int(raw_steering), -1000, 1000)
 
     if steering < 0:
         return 45 + ((steering + 1000) * (90 - 45)) // 1000

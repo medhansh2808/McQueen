@@ -14,7 +14,7 @@ def clamp(value, minimum, maximum):
 
 def steering_to_angle(steering):
     """Preserve the previous UNO-Q status mapping used by the Android UI."""
-    steering = -clamp(int(steering), -1000, 1000)
+    steering = clamp(int(steering), -1000, 1000)
 
     if steering < 0:
         return 45 + ((steering + 1000) * (80 - 45)) // 1000
