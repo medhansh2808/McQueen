@@ -1,7 +1,6 @@
 """HTTP compatibility server for the existing McQueen Android app.
 
-Compatible with Python 3.6+ so it runs on the Jetson Nano Ubuntu 18.04 image
-without adding another Python runtime or dependency.
+Compatible with Python 3.6+ so it runs on the Jetson Nano Ubuntu 18.04 image.
 """
 
 import json
@@ -22,6 +21,7 @@ class RuntimeState:
         self.recording = False
         self.logging = False
         self.session = ""
+        self.episode = ""
         self.frame_index = 0
         self.task = "Imitate expert driving"
 
@@ -34,16 +34,48 @@ class RuntimeState:
                 "recording": bool(self.recording),
                 "logging": bool(self.logging),
                 "session": self.session,
+                "episode": self.episode,
                 "frame_index": int(self.frame_index),
+                "recording_fps": 10,
+                "rgb_width": 1280,
+                "rgb_height": 720,
                 "task": self.task,
             }
 
+    def set_camera_ready(self, ready):
+        with self._lock:
+            self.camera_ready = bool(ready)
+
+    def set_episode(self, episode, frame_index=0):
+        with self._lock:
+            self.episode = str(episode)
+            self.frame_index = int(frame_index)
+
+    def set_frame_index(self, frame_index):
+        with self._lock:
+            self.frame_index = int(frame_index)
+
     def start_recording(self):
         with self._lock:
+            if not self.camera_ready:
+                return {
+                    "ok": False,
+                    "success": False,
+                    "recording": False,
+                    "logging": False,
+                    "session": self.session,
+                    "error": "camera not ready",
+                }
+
             if not self.session:
-                self.session = "session-{}".format(int(time.time() * 1000))
+                self.session = time.strftime(
+                    "session_%Y%m%d_%H%M%S",
+                    time.localtime(),
+                )
+
             self.logging = True
             self.recording = True
+
             return {
                 "ok": True,
                 "success": True,
@@ -56,12 +88,15 @@ class RuntimeState:
         with self._lock:
             self.logging = False
             self.recording = False
+
             return {
                 "ok": True,
                 "success": True,
                 "recording": False,
                 "logging": False,
                 "session": self.session,
+                "episode": self.episode,
+                "frame_index": int(self.frame_index),
             }
 
 
@@ -74,7 +109,7 @@ CAMERA_PLACEHOLDER_HTML = """<!doctype html>
 </head>
 <body>
   <h2>McQueen Camera</h2>
-  <p>Camera stream will be connected here after OAK-D/WebRTC setup.</p>
+  <p>Jetson-local camera capture is active for dataset recording.</p>
 </body>
 </html>
 """
@@ -91,7 +126,11 @@ class _Handler(BaseHTTPRequestHandler):
         return self.server.runtime_state
 
     def _json(self, payload, status=200):
-        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        body = json.dumps(
+            payload,
+            separators=(",", ":"),
+        ).encode("utf-8")
+
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -101,8 +140,12 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _html(self, html, status=200):
         body = html.encode("utf-8")
+
         self.send_response(status)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header(
+            "Content-Type",
+            "text/html; charset=utf-8",
+        )
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
@@ -124,14 +167,20 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         self._json(
-            {"ok": False, "success": False, "error": "not found"},
+            {
+                "ok": False,
+                "success": False,
+                "error": "not found",
+            },
             status=404,
         )
 
     def do_POST(self):
         path = self.path.split("?", 1)[0]
 
-        length = int(self.headers.get("Content-Length", "0") or "0")
+        length = int(
+            self.headers.get("Content-Length", "0") or "0"
+        )
         if length:
             self.rfile.read(length)
 
@@ -144,22 +193,35 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         self._json(
-            {"ok": False, "success": False, "error": "not found"},
+            {
+                "ok": False,
+                "success": False,
+                "error": "not found",
+            },
             status=404,
         )
 
 
 class McQueenHTTPServer(threading.Thread):
-    def __init__(self, runtime_state=None, bind_host="0.0.0.0", port=8080):
+    def __init__(
+        self,
+        runtime_state=None,
+        bind_host="0.0.0.0",
+        port=8080,
+    ):
         threading.Thread.__init__(self, name="mcqueen-http")
         self.daemon = True
+
         self.runtime_state = runtime_state or RuntimeState()
         self.bind_host = str(bind_host)
         self.port = int(port)
         self.httpd = None
 
     def run(self):
-        httpd = ThreadingHTTPServer((self.bind_host, self.port), _Handler)
+        httpd = ThreadingHTTPServer(
+            (self.bind_host, self.port),
+            _Handler,
+        )
         httpd.runtime_state = self.runtime_state
         self.httpd = httpd
         self.port = int(httpd.server_address[1])
@@ -181,7 +243,9 @@ def main():
         time.sleep(0.01)
 
     print(
-        "McQueen HTTP server listening on http://0.0.0.0:{}".format(server.port),
+        "McQueen HTTP server listening on http://0.0.0.0:{}".format(
+            server.port
+        ),
         flush=True,
     )
 

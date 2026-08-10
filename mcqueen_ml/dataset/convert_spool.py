@@ -42,10 +42,10 @@ def build_features() -> dict:
             "shape": (2,),
             "names": ["servo_angle_deg", "motor_pwm"],
         },
-        "mcqueen.source_timestamp_s": {
-            "dtype": "float32",
+        "mcqueen.source_timestamp_ms": {
+            "dtype": "int64",
             "shape": (1,),
-            "names": ["seconds"],
+            "names": ["milliseconds"],
         },
     }
 
@@ -170,15 +170,15 @@ def main() -> int:
                 dtype=np.float32,
             )
                 source_timestamp = np.asarray(
-                    [float(row["timestamp_s"])],
-                    dtype=np.float32,
+                    [int(row["timestamp"])],
+                    dtype=np.int64,
                 )
 
                 dataset.add_frame(
                     {
                         "observation.images.front_rgb": rgb,
                         "action": action,
-                            "mcqueen.source_timestamp_s": source_timestamp,
+                            "mcqueen.source_timestamp_ms": source_timestamp,
                         "task": task,
                     }
                 )
