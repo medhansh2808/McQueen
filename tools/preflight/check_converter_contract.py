@@ -28,6 +28,12 @@ if "motor_pwm" not in source:
 if "mcqueen.raw_actuator" in source:
     errors.append("redundant mcqueen.raw_actuator still present")
 
+if "mcqueen.source_timestamp_s" in source:
+    errors.append("lossy float32 source timestamp still present")
+
+if "mcqueen.source_timestamp_ms" not in source:
+    errors.append("int64 source timestamp_ms feature not found")
+
 if errors:
     print("CONVERTER CONTRACT: FAILED")
     for e in errors:
