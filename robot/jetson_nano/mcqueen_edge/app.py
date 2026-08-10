@@ -17,8 +17,13 @@ class EdgeApp:
         http_host="0.0.0.0",
         http_port=8080,
         failsafe_seconds=0.300,
+        enable_recorder=False,
+        recorder_root="data/spool",
+        camera_device=None,
     ):
-        self.backend = backend if backend is not None else MockDriveBackend()
+        self.backend = (
+            backend if backend is not None else MockDriveBackend()
+        )
         self.runtime_state = RuntimeState()
 
         self.teleop = TeleopServer(
@@ -34,9 +39,30 @@ class EdgeApp:
             port=http_port,
         )
 
+        self.recorder = None
+
+        if enable_recorder:
+            from .recorder import (
+                DEFAULT_CAMERA_DEVICE,
+                JetsonDatasetRecorder,
+            )
+
+            if camera_device is None:
+                camera_device = DEFAULT_CAMERA_DEVICE
+
+            self.recorder = JetsonDatasetRecorder(
+                runtime_state=self.runtime_state,
+                drive_controller=self.teleop.drive,
+                root_dir=recorder_root,
+                camera_device=camera_device,
+            )
+
     def start(self, timeout=2.0):
         self.teleop.start()
         self.http.start()
+
+        if self.recorder is not None:
+            self.recorder.start()
 
         deadline = time.time() + float(timeout)
 
@@ -61,8 +87,14 @@ class EdgeApp:
         raise RuntimeError("McQueen edge app failed to start")
 
     def stop(self):
+        if self.recorder is not None:
+            self.recorder.stop()
+
         self.http.stop()
         self.teleop.stop()
+
+        if self.recorder is not None and self.recorder.is_alive():
+            self.recorder.join(timeout=2.0)
 
         if self.http.is_alive():
             self.http.join(timeout=2.0)
@@ -112,15 +144,29 @@ def build_backend(args):
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description="McQueen Jetson edge app")
+    parser = argparse.ArgumentParser(
+        description="McQueen Jetson edge app"
+    )
+
     parser.add_argument(
         "--jetson",
         action="store_true",
-        help="use real Jetson GPIO/PWM instead of the safe mock backend",
+        help="use real Jetson GPIO/PWM and Jetson-local RGB recorder",
     )
     parser.add_argument("--servo-left-us", type=int)
     parser.add_argument("--servo-center-us", type=int)
     parser.add_argument("--servo-right-us", type=int)
+    parser.add_argument(
+        "--record-root",
+        default="data/spool",
+        help="canonical raw spool root",
+    )
+    parser.add_argument(
+        "--camera-device",
+        default=None,
+        help="override stable Lenovo webcam device path",
+    )
+
     return parser.parse_args(argv)
 
 
@@ -133,13 +179,34 @@ def main(argv=None):
         print("ERROR: {}".format(exc), flush=True)
         return 2
 
-    app = EdgeApp(backend=backend)
+    app = EdgeApp(
+        backend=backend,
+        enable_recorder=args.jetson,
+        recorder_root=args.record_root,
+        camera_device=args.camera_device,
+    )
+
     app.start()
 
     mode = "JETSON GPIO" if args.jetson else "MOCK"
-    print("McQueen edge app started ({})".format(mode), flush=True)
-    print("UDP  : 0.0.0.0:{}".format(app.udp_port), flush=True)
-    print("HTTP : http://0.0.0.0:{}".format(app.http_port), flush=True)
+    print(
+        "McQueen edge app started ({})".format(mode),
+        flush=True,
+    )
+    print(
+        "UDP  : 0.0.0.0:{}".format(app.udp_port),
+        flush=True,
+    )
+    print(
+        "HTTP : http://0.0.0.0:{}".format(app.http_port),
+        flush=True,
+    )
+    print(
+        "Recorder: {}".format(
+            "JETSON LOCAL" if app.recorder is not None else "disabled"
+        ),
+        flush=True,
+    )
 
     try:
         while True:
