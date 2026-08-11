@@ -1,35 +1,62 @@
 # McQueen architecture
 
-## UNO Q
+## Phone / KACHOW
 
-The UNO Q is responsible for:
+Human-control and authority endpoint:
+- manual steering/throttle
+- ARM / neutral-arm flow
+- manual takeover / E-stop
+- AUTO authorization
 
-- phone command reception,
-- motor and steering control,
-- OAK-D RGB/depth capture,
-- lightweight episode recording,
-- autonomous inference.
+Manual/E-stop authority must override remote inference.
 
-Its authoritative source is under `robot/uno_q/`.
+## Jetson Nano 2GB
+
+Edge runtime:
+- Lenovo camera capture
+- NVIDIA hardware H.264 encode
+- KACHOW UDP teleop
+- dataset-v2 recording
+- exact frame IDs and Jetson monotonic capture timestamps
+- future wheel-encoder GPIO input
+- actuator I/O
+- stale-prediction / steering / speed safety
+
+Current steering mapping:
+- `-1000 -> 115 deg` left
+- `0 -> 90 deg` center
+- `+1000 -> 45 deg` right
+
+## RTX 4090
+
+First autonomous compute target:
+- receive/decode camera video
+- preprocessing
+- temporal-policy inference
+- return `[servo_angle_deg, motor_pwm]`
+- training/evaluation/checkpoints
+
+Jetson-only inference is a later compression/distillation option, not the current requirement.
 
 ## Laptop
 
-The Ubuntu laptop is responsible for:
+Development/SSH/debug/Git/orchestration and dataset inspection. It is not intended to sit in the
+normal robot runtime loop.
 
-- syncing recorded episodes,
-- validating the recording spool,
-- converting recordings into LeRobotDataset v3,
-- visualizing and reviewing datasets,
-- training models,
-- W&B experiment tracking,
-- exporting models for the UNO Q.
+## Transport split
+
+- video: Jetson hardware H.264 -> WebRTC -> RTX
+- signaling: WebSocket/WSS rendezvous when needed
+- autonomous action return: direct UDP
+- full-loop identity: exact frame ID
+- authoritative latency origin: Jetson monotonic capture timestamp
 
 ## Dataset flow
 
-1. Phone LOG starts/stops an episode.
-2. UNO Q saves RGB, raw uint16 depth, actions and timestamps.
-3. Laptop syncs the episode.
-4. Validator checks synchronization and files.
-5. Converter creates LeRobotDataset v3.
-6. Training reads the LeRobot dataset.
-7. W&B records configuration, metrics and checkpoints.
+1. Human drives with KACHOW.
+2. Jetson records RGB/actions/timestamps/encoder observations.
+3. Raw episode validates against dataset-v2.
+4. Convert to LeRobot in the verified RTX environment.
+5. Split by whole episodes.
+6. Train temporal policy.
+7. Evaluate held-out drives before closed-loop deployment.
