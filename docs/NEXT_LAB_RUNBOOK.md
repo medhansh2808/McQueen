@@ -5,6 +5,21 @@ Available: Jetson, Wi-Fi dongle, Lenovo camera, laptop, phone/hotspot, lab/alter
 
 ## Phase A — no drivetrain required
 
+### 0. QUICK WAN PIPELINE TEST (the "server thing") — do this first if the
+    only goal is proving the Jetson<->RTX video loop again
+
+- On the laptop, in a real terminal (interactive SSH passwords):
+  `./tools/realtime/run_rtp_wan_test.sh`
+- It deploys the FIXED sender to the Jetson and the receiver to the RTX, starts
+  broker + cloudflared (or reuses running ones), runs the loop 35s, and prints
+  stage-by-stage results (NAT punch ready / RTX decoded frames / control return /
+  full-loop latency).
+- Key: use the venv python on the RTX (`gst-webrtc-venv/bin/python`) — system
+  python lacks `websocket` (error #21). WebRTC is DEAD on the Jetson's old
+  GStreamer (error #6) — do not retry webrtcbin.
+- If the loop is not green, see `docs/evidence/2026-08-13-lab-pull/README.md`
+  findings F1–F6 and the 21-entry error log.
+
 ### 1. Jetson health before changing anything
 
 - connect/power Jetson
@@ -75,12 +90,13 @@ Drive-JEPA comes after the same interface is proven with PPGeo.
 
 ### 8. Real camera/control integration
 
-With Jetson camera + RTX:
-- WebRTC video to RTX
-- exact frame metadata/identity
+With Jetson camera + RTX (NEW transport — NAT-punched raw RTP over UDP, NOT WebRTC):
+- `tools/realtime/gst_jetson_rtp_wan.py` (Jetson sender) + `tools/realtime/gst_rtx_rtp_receiver.py` (RTX receiver)
+- exact frame metadata/identity (in-band META: frame_id + capture_mono_ns)
 - inference or dummy inference
-- direct UDP return
+- direct UDP control return
 - Jetson dry-run receive
+- run via `tools/realtime/run_rtp_wan_test.sh`
 
 Use benchmark-v2 stage-by-stage diagnostics. Do not enable GPIO merely to benchmark transport.
 
