@@ -138,6 +138,27 @@ Never silently overwrite historical decisions — append and mark superseded.
 
 ---
 
+## DECISION 010 — Lab-exit pull: mirror all machine state to laptop; fix confirmed sender bug
+
+- **DATE**: 2026-08-13
+- **QUESTION**: User is leaving the lab and needs everything (Jetson + RTX) on the laptop for
+  home debugging, plus repo state updated.
+- **EVIDENCE**: WAN-pipeline work lives only on the machines + untracked laptop files; 19-error
+  log documented the session; deployed scripts differ from laptop copies (md5s).
+- **OPTIONS**: (1) Pull everything and mirror into repo evidence; (2) pull nothing, rely on
+  memory. (2) rejected — machine state would be lost.
+- **DECISION**: Pull all WAN scripts/logs/pids + recordings from Jetson and RTX into
+  `docs/evidence/2026-08-13-lab-pull/` + `data/lab_pull_20260813/` (gitignored); fix the
+  confirmed `% 30 < n` NameError on the laptop sender copy; document findings; update all
+  `.mcqueen/` files. Use transient SSH_ASKPASS helper (error-log #1 pattern), delete after.
+- **WHY**: Home debugging + a future safe GitHub update need exact machine snapshots; the
+  NameError is a verified root-cause candidate for the frozen rtp_ts / frames_rx=0 symptom.
+- **CONSEQUENCES**: Evidence is now durable in-repo; sender must be redeployed next lab; RTX
+  receiver needs venv python. Code remains uncommitted until user authorizes.
+- **STATUS**: ACCEPTED (pull + fix done, verified)
+
+---
+
 ## DECISION 008 — Supermind context dumps are reference material, not binding rules
 
 - **DATE**: 2026-08-13
@@ -148,4 +169,42 @@ Never silently overwrite historical decisions — append and mark superseded.
   reading only and never override AGENTS.md.
 - **WHY**: Structured contract beats unstructured dumps; avoids contradictory "constitutions".
 - **CONSEQUENCES**: Where Supermind dumps conflict with AGENTS.md, AGENTS.md wins.
+- **STATUS**: ACCEPTED
+
+---
+
+## DECISION 011 — .mcqueen state files are ALWAYS current (user mandate)
+
+- **DATE**: 2026-08-13
+- **QUESTION**: How diligently must the `.mcqueen/` state files be maintained?
+- **EVIDENCE**: User (audit answers, 2026-08-13): "yes yes yes after each session and i
+  really mean this… you must always and always make sure to keep the mcqueen statefiles
+  very very well updated… the github we can update at home each night but the mcqueen
+  state files gotta be flawlessly perfectly and extremely updated." Also: audit found
+  HANDOFF/CURRENT_TASK/SESSION_LOG/AGENT_STATE stale after the commit+push.
+- **DECISION**: Update `.mcqueen/` state files at the END of EVERY session (and at any
+  material checkpoint), with current git state, task state, decisions, verified facts,
+  and open questions. State files are MORE important than GitHub sync: GitHub may lag
+  (nightly home sync sanctioned), state files never lag.
+- **WHY**: Durable agent memory must be a flawless reflection of reality or it misleads
+  every future session (source-of-truth hierarchy, AGENTS.md B).
+- **CONSEQUENCES**: Session end is incomplete until state files are updated. This
+  decision supersedes any earlier laxer habit; it does not change the push policy.
+- **STATUS**: ACCEPTED
+
+---
+
+## DECISION 012 — GitHub sync at home each night is sanctioned
+
+- **DATE**: 2026-08-13
+- **QUESTION**: When may repo state be pushed to GitHub?
+- **EVIDENCE**: User audit answer: "the github we can update at home each night";
+  earlier rule was "update GitHub only when hardware works". The 2026-08-13 push
+  (WAN code + evidence + agent system) was confirmed intentional.
+- **DECISION**: Nightly home sync of committed work to GitHub is acceptable per user;
+  the strict hardware-first rule applies to CLAIMS and milestone records, not to code
+  sync. Pushes still require user awareness (never silent/background pushes).
+- **WHY**: Evidence durability; user explicitly relaxed the rule.
+- **CONSEQUENCES**: Commits may be pushed at home; hardware milestones still need
+  hardware verification before being claimed.
 - **STATUS**: ACCEPTED

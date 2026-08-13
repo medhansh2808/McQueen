@@ -26,7 +26,9 @@ echo
 echo "===== Steering contract ====="
 python3 - <<'PY'
 from robot.jetson_nano.mcqueen_edge.server import steering_to_angle
-expected={-1000:45,0:90,1000:115}
+# Current contract (2026-08-13, matches tests/test_jetson_steering_mapping.py
+# and the physical McQueen steering direction): -1000 -> 115 deg, 1000 -> 45 deg.
+expected={-1000:115,0:90,1000:45}
 ok=True
 for x,y in expected.items():
     got=steering_to_angle(x)
@@ -34,7 +36,7 @@ for x,y in expected.items():
     ok &= got == y
 raise SystemExit(0 if ok else 1)
 PY
-[ $? -eq 0 ] && pass "Steering = 45 / 90 / 115" || fail "Steering contract broken"
+[ $? -eq 0 ] && pass "Steering = 115 / 90 / 45" || fail "Steering contract broken"
 
 echo
 echo "===== Laptop services ====="

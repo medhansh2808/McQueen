@@ -1,0 +1,17 @@
+[RTX] UDP local 0.0.0.0:42773
+[RTX] STUN public 14.139.108.62:42773
+[RTX] broker connecting ws://127.0.0.1:8765/ws?role=rtx&session=finish-udp-1786456510
+[RTX] broker connected
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] announcing UDP candidate 14.139.108.62:42773
+[RTX] peer UDP candidate 152.58.45.33:44088
+[RTX] direct UDP responder active
+[RTX] peer UDP candidate 152.58.45.33:44088

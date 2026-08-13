@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/var/tmp/mcqueen-junior/rtx_peer.py", line 295, in <module>
+    main()
+  File "/var/tmp/mcqueen-junior/rtx_peer.py", line 291, in main
+    asyncio.run(run(args))
+  File "/home/junior/miniforge3/envs/lerobot/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/junior/miniforge3/envs/lerobot/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/junior/miniforge3/envs/lerobot/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/var/tmp/mcqueen-junior/rtx_peer.py", line 141, in run
+    install_dtls_alert_logging()
+  File "/var/tmp/mcqueen-junior/rtx_peer.py", line 91, in install_dtls_alert_logging
+    original_recv = aiortc_ice.RTCIceTransport._recv
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'RTCIceTransport' has no attribute '_recv'

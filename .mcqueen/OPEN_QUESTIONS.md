@@ -17,7 +17,28 @@ Each entry: question, why it matters, who/what can resolve it, status.
 - **Why**: Determines the fix target (crash? URL churn? babysitting? receiver pipeline bug?).
 - **Resolve**: Inspect `~/Downloads/mcqueen_wan_direct_p2p/` fix bundles + RTX logs at the lab.
 - **Status**: PARTIALLY VERIFIED — known pain points: nothing committed, random tunnel URL per
-  restart, no persistence/restart, ad-hoc debugging rounds. Root incident specifics UNKNOWN.
+  restart, no persistence/restart, ad-hoc debugging rounds. 2026-08-13 pull found two concrete
+  causes (F1 sender `% 30 < n` NameError freezing rtp_ts; F2 receiver started with wrong
+  python). Next session: deploy fixed sender + venv receiver, confirm rtp_ts advances.
+
+## Q2b — Sender rtp_ts advancement after F1 fix
+- **Question**: With the `% 30 == 0` fix, does the sender's per-frame rtp_ts advance and does the
+  RTX decode >1 frame (frames_rx > 0) end-to-end?
+- **Why**: The NameError froze rtp_ts at 0, which merges all frames into one AU on rtph264depay.
+  If the stall persists after the fix, the #19 camera-source issue is real and needs the
+  gst-launch isolation debug.
+- **Resolve**: Next lab session: deploy fixed sender, start receiver with gst-webrtc-venv python,
+  run full loop, check `SENT pkts` throttle prints + `rtp_ts` + `frames_rx`.
+- **Status**: PARTIALLY VERIFIED (2026-08-13 home debug): code-level ALL prior failure
+  mechanisms are fixed + unit-tested offline (test_rtp_packetization 6/6). Also: the
+  cv2+x264 chain already flowed ~12 min on the Jetson (22,209 AUs), so #19's NVENC stall is
+  not in this chain. Remaining: hardware proof tomorrow via run_rtp_wan_test.sh.
+
+## Q8 — Old sender's marker-every-packet `(96 << 1)` bug — resolved?
+- **Question**: lab13/14/15 showed frames_rx climbing with zero decoded frames — marker on every
+  packet. Was that bug in the deployed sender?
+- **Resolve**: RESOLVED 2026-08-13 home debug — yes; new sender sets marker only on the last
+  packet (unit-tested). No action needed beyond tomorrow's hardware proof.
 
 ## Q3 — Where did the broker/tunnel actually run on 2026-08-11?
 - **Question**: Host of broker.py + cloudflared during the proof.
@@ -46,6 +67,10 @@ Each entry: question, why it matters, who/what can resolve it, status.
 - **Resolve**: RESOLVED 2026-08-13 — user chose "Commit now": committed locally (no push).
   Push still deferred per user rule (GitHub updates only when hardware works).
 - **Status**: RESOLVED (local commit done; push pending future lab milestone)
+
+## Q6 — RESOLVED (2026-08-13 audit): bootstrap + WAN code + evidence all committed AND pushed
+- Everything through `6698d41` is on GitHub (origin == local). User confirmed the push was
+  intentional (DECISION 012: nightly home sync sanctioned).
 
 ## Q7 — Per-machine Freebuff reachability
 - **Question**: Is this laptop the machine that goes to the lab (it is, per user), and can it

@@ -1,0 +1,46 @@
+[RTX-GST] broker connecting ws://127.0.0.1:8765/ws?role=rtx&session=mcqueen
+[RTX-GST] broker connected
+[RTX-GST] STUN stun://stun.l.google.com:19302
+[RTX-GST] PLAYING <enum GST_STATE_CHANGE_SUCCESS of type Gst.StateChangeReturn>
+[RTX-GST] peer jetson connected
+[RTX-GST] offer received
+[RTX-GST] offer applied -> creating answer
+[RTX-GST] answer sent
+[RTX-GST] LOCAL ICE host/other candidate:1 1 UDP 2015363327 192.168.0.132 54152 typ host
+[RTX-GST] LOCAL ICE host/other candidate:2 1 TCP 1015021823 192.168.0.132 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:3 1 TCP 1010827519 192.168.0.132 39935 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:4 1 UDP 2015363583 192.168.0.179 45454 typ host
+[RTX-GST] LOCAL ICE host/other candidate:5 1 TCP 1015022079 192.168.0.179 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:6 1 TCP 1010827775 192.168.0.179 58391 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:7 1 UDP 2015363839 10.27.100.101 56298 typ host
+[RTX-GST] LOCAL ICE host/other candidate:8 1 TCP 1015022335 10.27.100.101 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:9 1 TCP 1010828031 10.27.100.101 44541 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:10 1 UDP 2015364095 10.140.40.101 53141 typ host
+[RTX-GST] LOCAL ICE host/other candidate:11 1 TCP 1015022591 10.140.40.101 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:12 1 TCP 1010828287 10.140.40.101 59617 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:13 1 UDP 2015364351 fe80::eb48:c42e:ccbc:dd37 36897 typ host
+[RTX-GST] LOCAL ICE host/other candidate:14 1 TCP 1015022847 fe80::eb48:c42e:ccbc:dd37 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:15 1 TCP 1010828543 fe80::eb48:c42e:ccbc:dd37 51979 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:16 1 UDP 2015364607 fe80::70a:d7b2:718e:74a8 44410 typ host
+[RTX-GST] LOCAL ICE host/other candidate:17 1 TCP 1015023103 fe80::70a:d7b2:718e:74a8 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:18 1 TCP 1010828799 fe80::70a:d7b2:718e:74a8 34559 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:19 1 UDP 2015364863 fe80::4c8a:40ff:fe82:1329 57563 typ host
+[RTX-GST] LOCAL ICE host/other candidate:20 1 TCP 1015023359 fe80::4c8a:40ff:fe82:1329 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:21 1 TCP 1010829055 fe80::4c8a:40ff:fe82:1329 33479 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:22 1 UDP 2015365119 fe80::7471:5eff:fe25:acb4 40381 typ host
+[RTX-GST] LOCAL ICE host/other candidate:23 1 TCP 1015023615 fe80::7471:5eff:fe25:acb4 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:24 1 TCP 1010829311 fe80::7471:5eff:fe25:acb4 54179 typ host tcptype passive
+[RTX-GST] LOCAL ICE srflx candidate:25 1 UDP 1679819007 14.139.108.62 54152 typ srflx raddr 192.168.0.132 rport 54152
+[RTX-GST] LOCAL ICE srflx candidate:26 1 TCP 847249663 14.139.108.62 9 typ srflx raddr 192.168.0.132 rport 9 tcptype active
+[RTX-GST] LOCAL ICE srflx candidate:27 1 TCP 843055359 14.139.108.62 39935 typ srflx raddr 192.168.0.132 rport 39935 tcptype passive
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CHECKING of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] LOCAL ICE srflx candidate:28 1 UDP 1679819263 14.139.108.62 45454 typ srflx raddr 192.168.0.179 rport 45454
+[RTX-GST] LOCAL ICE srflx candidate:29 1 TCP 847249919 14.139.108.62 9 typ srflx raddr 192.168.0.179 rport 9 tcptype active
+[RTX-GST] LOCAL ICE srflx candidate:30 1 TCP 843055615 14.139.108.62 58391 typ srflx raddr 192.168.0.179 rport 58391 tcptype passive
+[RTX-GST] LOCAL ICE srflx candidate:25 1 UDP 1763705087 172.18.82.109 54152 typ srflx raddr 192.168.0.132 rport 54152
+[RTX-GST] LOCAL ICE srflx candidate:27 1 TCP 876609791 172.18.82.109 39935 typ srflx raddr 192.168.0.132 rport 39935 tcptype passive
+[RTX-GST] LOCAL ICE srflx candidate:28 1 UDP 1763705343 172.18.82.109 45454 typ srflx raddr 192.168.0.179 rport 45454
+[RTX-GST] LOCAL ICE srflx candidate:30 1 TCP 876610047 172.18.82.109 58391 typ srflx raddr 192.168.0.179 rport 58391 tcptype passive
+[RTX-GST] LOCAL ICE srflx candidate:31 1 UDP 1763705599 172.18.82.109 56298 typ srflx raddr 10.27.100.101 rport 56298
+[RTX-GST] LOCAL ICE srflx candidate:32 1 TCP 876610303 172.18.82.109 44541 typ srflx raddr 10.27.100.101 rport 44541 tcptype passive
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_FAILED of type GstWebRTC.WebRTCICEConnectionState>

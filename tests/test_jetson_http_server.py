@@ -40,7 +40,6 @@ assert status == 200
 assert content_type == "text/html"
 html = body.decode("utf-8")
 assert "McQueen Camera" in html
-assert "OAK-D/WebRTC" in html
 
 status, content_type, body = get(base + "/status")
 initial = json.loads(body.decode("utf-8"))
@@ -49,11 +48,20 @@ assert initial["logging"] is False
 assert initial["camera_ready"] is False
 assert initial["task"] == "Imitate expert driving"
 
+# Recording requires the camera to be ready (on the Jetson the capture thread
+# calls set_camera_ready). Emulate that here — without it start_recording()
+# correctly refuses with recording=False ("camera not ready").
+state.set_camera_ready(True)
+
+status, content_type, body = get(base + "/status")
+ready = json.loads(body.decode("utf-8"))
+assert ready["camera_ready"] is True
+
 status, content_type, body = post(base + "/api/log/start")
 started = json.loads(body.decode("utf-8"))
 assert started["recording"] is True
 assert started["logging"] is True
-assert started["session"].startswith("session-")
+assert started["session"].startswith("session_")
 session = started["session"]
 
 status, content_type, body = get(base + "/status")

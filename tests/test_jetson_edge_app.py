@@ -63,6 +63,11 @@ base = "http://127.0.0.1:{}".format(app.http_port)
 health = http_get_json(base + "/health")
 assert health["ok"] is True
 
+# On the Jetson the recorder thread calls set_camera_ready(True) when the
+# camera opens. On a laptop there is no camera, so emote it — without it
+# start_recording() correctly refuses ("camera not ready").
+app.runtime_state.set_camera_ready(True)
+
 started = http_post_json(base + "/api/log/start")
 assert started["recording"] is True
 assert started["logging"] is True

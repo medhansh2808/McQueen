@@ -1,0 +1,142 @@
+[JETSON-CAM] broker connecting ws://192.168.0.132:8765/ws?role=jetson&session=leave-local-20260811_193606
+[JETSON-CAM] broker connected
+[JETSON-CAM] camera /dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0
+[JETSON-CAM] pipeline: Lenovo MJPEG 1280x720@30 -> NVDEC -> scale 640x360 -> NVENC H264 800kbps -> WebRTC
+Opening in BLOCKING MODE 
+Opening in BLOCKING MODE 
+[JETSON-CAM] PLAYING <enum GST_STATE_CHANGE_SUCCESS of type Gst.StateChangeReturn>
+NvMMLiteOpen : Block : BlockType = 277 
+NVMEDIA: Reading vendor.tegra.display-size : status: 6 
+NvMMLiteBlockCreate : Block : BlockType = 277 
+NvMMLiteOpen : Block : BlockType = 4 
+===== NVMEDIA: NVENC =====
+NvMMLiteBlockCreate : Block : BlockType = 4 
+H264: Profile = 66, Level = 0 
+[JETSON-CAM] negotiation needed
+[JETSON-CAM] offer sent
+[JETSON-CAM] LOCAL ICE host/other candidate:1 1 UDP 2013266431 fe80::4ea6:b34:44e5:fb8e 52186 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:2 1 TCP 1015025151 fe80::4ea6:b34:44e5:fb8e 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:3 1 TCP 1010830847 fe80::4ea6:b34:44e5:fb8e 53893 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:4 1 UDP 2013266430 fe80::b4c7:aaff:fe1a:45a3 35197 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:5 1 TCP 1015025150 fe80::b4c7:aaff:fe1a:45a3 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:6 1 TCP 1010830846 fe80::b4c7:aaff:fe1a:45a3 60851 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:7 1 UDP 2013266429 fe80::b4c7:aaff:fe1a:45a1 33701 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:8 1 TCP 1015025149 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:9 1 TCP 1010830845 fe80::b4c7:aaff:fe1a:45a1 40143 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:10 1 UDP 2013266428 fe80::b4c7:aaff:fe1a:45a1 34377 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:11 1 TCP 1015025148 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:12 1 TCP 1010830844 fe80::b4c7:aaff:fe1a:45a1 39507 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:13 1 UDP 2013266427 fe80::1 56721 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:14 1 TCP 1015025147 fe80::1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:15 1 TCP 1010830843 fe80::1 54991 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:16 1 UDP 2013266426 fe80::c0a7:c52e:8b52:dbea 51534 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:17 1 TCP 1015025146 fe80::c0a7:c52e:8b52:dbea 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:18 1 TCP 1010830842 fe80::c0a7:c52e:8b52:dbea 43777 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:19 1 UDP 2013266425 2409:40c0:106a:86a3:72c:b273:65ee:9c56 58576 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:20 1 TCP 1015023359 2409:40c0:106a:86a3:72c:b273:65ee:9c56 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:21 1 TCP 1010829055 2409:40c0:106a:86a3:72c:b273:65ee:9c56 34359 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:22 1 UDP 2013266424 2409:40c0:106a:86a3:f0cb:857c:41ef:9850 33451 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:23 1 TCP 1015023615 2409:40c0:106a:86a3:f0cb:857c:41ef:9850 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:24 1 TCP 1010829311 2409:40c0:106a:86a3:f0cb:857c:41ef:9850 51759 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:25 1 UDP 2013266423 172.17.0.1 46568 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:26 1 TCP 1015023871 172.17.0.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:27 1 TCP 1010829567 172.17.0.1 44251 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:28 1 UDP 2013266422 192.168.55.1 55433 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:29 1 TCP 1015024127 192.168.55.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:30 1 TCP 1010829823 192.168.55.1 34007 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:31 1 UDP 2013266421 10.147.40.55 42688 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:32 1 TCP 1015024383 10.147.40.55 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:33 1 TCP 1010830079 10.147.40.55 46333 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:1 2 UDP 2013266430 fe80::4ea6:b34:44e5:fb8e 33089 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:2 2 TCP 1015025150 fe80::4ea6:b34:44e5:fb8e 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:3 2 TCP 1010830846 fe80::4ea6:b34:44e5:fb8e 33753 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:4 2 UDP 2013266429 fe80::b4c7:aaff:fe1a:45a3 48286 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:5 2 TCP 1015025149 fe80::b4c7:aaff:fe1a:45a3 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:6 2 TCP 1010830845 fe80::b4c7:aaff:fe1a:45a3 59171 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:7 2 UDP 2013266428 fe80::b4c7:aaff:fe1a:45a1 36802 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:8 2 TCP 1015025148 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:9 2 TCP 1010830844 fe80::b4c7:aaff:fe1a:45a1 43575 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:10 2 UDP 2013266427 fe80::b4c7:aaff:fe1a:45a1 49834 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:11 2 TCP 1015025147 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:12 2 TCP 1010830843 fe80::b4c7:aaff:fe1a:45a1 56835 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:13 2 UDP 2013266426 fe80::1 38515 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:14 2 TCP 1015025146 fe80::1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:15 2 TCP 1010830842 fe80::1 49713 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:16 2 UDP 2013266425 fe80::c0a7:c52e:8b52:dbea 60589 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:17 2 TCP 1015025145 fe80::c0a7:c52e:8b52:dbea 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:18 2 TCP 1010830841 fe80::c0a7:c52e:8b52:dbea 57493 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:19 2 UDP 2013266424 2409:40c0:106a:86a3:72c:b273:65ee:9c56 54879 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:20 2 TCP 1015023358 2409:40c0:106a:86a3:72c:b273:65ee:9c56 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:21 2 TCP 1010829054 2409:40c0:106a:86a3:72c:b273:65ee:9c56 60041 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:22 2 UDP 2013266423 2409:40c0:106a:86a3:f0cb:857c:41ef:9850 35867 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:23 2 TCP 1015023614 2409:40c0:106a:86a3:f0cb:857c:41ef:9850 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:24 2 TCP 1010829310 2409:40c0:106a:86a3:f0cb:857c:41ef:9850 40741 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:25 2 UDP 2013266422 172.17.0.1 59234 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:26 2 TCP 1015023870 172.17.0.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:27 2 TCP 1010829566 172.17.0.1 36977 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:28 2 UDP 2013266421 192.168.55.1 56366 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:29 2 TCP 1015024126 192.168.55.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:30 2 TCP 1010829822 192.168.55.1 60459 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:31 2 UDP 2013266420 10.147.40.55 58660 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:32 2 TCP 1015024382 10.147.40.55 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:33 2 TCP 1010830078 10.147.40.55 47167 typ host tcptype passive
+[JETSON-CAM] answer applied
+[JETSON-CAM] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CHECKING of type GstWebRTC.WebRTCICEConnectionState>
+[JETSON-CAM] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CONNECTED of type GstWebRTC.WebRTCICEConnectionState>
+[JETSON-CAM] CONTROL frame=40 CAMERA-LOOP=185.4 ms
+[JETSON-CAM] CONTROL frame=56 CAMERA-LOOP=184.2 ms
+[JETSON-CAM] CONTROL frame=80 CAMERA-LOOP=35.2 ms
+[JETSON-CAM] CONTROL frame=90 CAMERA-LOOP=334.9 ms
+[JETSON-CAM] CONTROL frame=116 CAMERA-LOOP=61.3 ms
+[JETSON-CAM] CONTROL frame=136 CAMERA-LOOP=39.9 ms
+[JETSON-CAM] CONTROL frame=154 CAMERA-LOOP=72.3 ms
+[JETSON-CAM] CONTROL frame=176 CAMERA-LOOP=6.1 ms
+[JETSON-CAM] CONTROL frame=190 CAMERA-LOOP=38.8 ms
+[JETSON-CAM] CONTROL frame=210 CAMERA-LOOP=35.1 ms
+[JETSON-CAM] CONTROL frame=230 CAMERA-LOOP=39.2 ms
+[JETSON-CAM] CONTROL frame=250 CAMERA-LOOP=31.8 ms
+[JETSON-CAM] CONTROL frame=264 CAMERA-LOOP=71.2 ms
+[JETSON-CAM] CONTROL frame=286 CAMERA-LOOP=11.7 ms
+[JETSON-CAM] CONTROL frame=306 CAMERA-LOOP=7.0 ms
+[JETSON-CAM] CONTROL frame=324 CAMERA-LOOP=68.6 ms
+[JETSON-CAM] CONTROL frame=344 CAMERA-LOOP=67.3 ms
+[JETSON-CAM] CONTROL frame=366 CAMERA-LOOP=8.9 ms
+[JETSON-CAM] CONTROL frame=386 CAMERA-LOOP=6.6 ms
+[JETSON-CAM] CONTROL frame=406 CAMERA-LOOP=6.5 ms
+[JETSON-CAM] CONTROL frame=420 CAMERA-LOOP=69.3 ms
+[JETSON-CAM] CONTROL frame=436 CAMERA-LOOP=39.2 ms
+[JETSON-CAM] CONTROL frame=456 CAMERA-LOOP=30.9 ms
+[JETSON-CAM] CONTROL frame=472 CAMERA-LOOP=5.8 ms
+[JETSON-CAM] CONTROL frame=486 CAMERA-LOOP=62.0 ms
+[JETSON-CAM] CONTROL frame=500 CAMERA-LOOP=140.7 ms
+[JETSON-CAM] CONTROL frame=522 CAMERA-LOOP=228.0 ms
+[JETSON-CAM] CONTROL frame=542 CAMERA-LOOP=174.6 ms
+[JETSON-CAM] CONTROL frame=568 CAMERA-LOOP=74.0 ms
+[JETSON-CAM] CONTROL frame=588 CAMERA-LOOP=33.1 ms
+[JETSON-CAM] CONTROL frame=604 CAMERA-LOOP=12.5 ms
+[JETSON-CAM] CONTROL frame=622 CAMERA-LOOP=70.1 ms
+[JETSON-CAM] CONTROL frame=638 CAMERA-LOOP=40.4 ms
+[JETSON-CAM] CONTROL frame=654 CAMERA-LOOP=10.4 ms
+[JETSON-CAM] CONTROL frame=672 CAMERA-LOOP=71.7 ms
+[JETSON-CAM] CONTROL frame=688 CAMERA-LOOP=44.9 ms
+[JETSON-CAM] CONTROL frame=708 CAMERA-LOOP=38.9 ms
+[JETSON-CAM] CONTROL frame=726 CAMERA-LOOP=59.7 ms
+[JETSON-CAM] CONTROL frame=746 CAMERA-LOOP=31.8 ms
+[JETSON-CAM] CONTROL frame=760 CAMERA-LOOP=67.0 ms
+[JETSON-CAM] CONTROL frame=780 CAMERA-LOOP=66.4 ms
+[JETSON-CAM] CONTROL frame=796 CAMERA-LOOP=31.3 ms
+[JETSON-CAM] CONTROL frame=810 CAMERA-LOOP=72.2 ms
+[JETSON-CAM] CONTROL frame=832 CAMERA-LOOP=17.1 ms
+[JETSON-CAM] CONTROL frame=850 CAMERA-LOOP=72.3 ms
+[JETSON-CAM] CONTROL frame=866 CAMERA-LOOP=40.9 ms
+[JETSON-CAM] CONTROL frame=884 CAMERA-LOOP=40.8 ms
+[JETSON-CAM] CONTROL frame=904 CAMERA-LOOP=30.7 ms
+[JETSON-CAM] CONTROL frame=918 CAMERA-LOOP=76.1 ms
+[JETSON-CAM] CONTROL frame=936 CAMERA-LOOP=101.5 ms
+[JETSON-CAM] CONTROL frame=954 CAMERA-LOOP=176.2 ms
+[JETSON-CAM] CONTROL frame=978 CAMERA-LOOP=14.8 ms
+[JETSON-CAM] CONTROL frame=996 CAMERA-LOOP=69.5 ms
+[JETSON-CAM] CONTROL frame=1010 CAMERA-LOOP=154.9 ms
+[JETSON-CAM] CONTROL frame=1034 CAMERA-LOOP=96.4 ms
+[JETSON-CAM] CONTROL frame=1056 CAMERA-LOOP=9.6 ms
+[JETSON-CAM] CONTROL frame=1076 CAMERA-LOOP=8.2 ms

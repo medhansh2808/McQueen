@@ -1,42 +1,43 @@
 # CURRENT_TASK.md — McQueen active task
 
-Updated: 2026-08-13 (bootstrap)
+Updated: 2026-08-13 (home debug session, evening)
 
 ## OBJECTIVE
-Establish the durable repository-based agent contract + context system
-(`AGENTS.md` + `.mcqueen/`) so a fresh Freebuff session can recover McQueen context
-without ChatGPT. Then return to the real engineering goal.
+Offline-debug the WAN video path from home so that the next lab session is
+TEST-ONLY (no from-scratch debugging): resolve/understand sender #19 stall,
+confirm the F1 fix + venv receiver are sufficient for rtp_ts to advance and
+frames_rx > 0 (Q2b), and hand over a precise hardware test checklist.
 
 ## CURRENT STATE
-- Bootstrap in progress (this session): contract + context files being created/verified.
-- Project status (docs/PROJECT_STATUS_2026-08-12.md): dataset-v2 + temporal core home-validated;
-  2026-08-11 lab proved direct-WAN control return + local-route camera→RTX compute +
-  phone→Jetson parsing. Drivetrain hardware NOT yet verified.
-- Git: branch `jetson-nano`, HEAD `5cc716c`, clean worktree except untracked local folder
-  `context stuff for understanding the mcqueen project/`.
+- 2026-08-13 lab day fully audited; everything COMMITTED + PUSHED to GitHub
+  (HEAD = origin/jetson-nano = 6698d41, user-authorized).
+- HOME DEBUG COMPLETE (2026-08-13 evening): root causes of the lab failures pinned
+  from pulled evidence; sender hardened + refactored; new offline unit test suite
+  (test_rtp_packetization.py 6/6 PASS). Details:
+  docs/HOME_DEBUG_2026-08-13.md + SESSION_LOG + VERIFIED_FACTS.
+- FIXED (laptop copy): F1 `% 30 == 0` rtp_ts advance; marker-only-on-last-packet;
+  FU-A S/E complete; AUD drop; non-VCL (SPS/PPS) hold-and-prepend; #19 stall chain
+  removed by design (cv2 + x264 SW); probe-error log reset + result checks in
+  run_rtp_wan_test.sh.
+- BLOCKED (env): test_temporal_policy_v2.py needs torch (mcqueen-laptop env).
+- Test suite: pytest tests/ 7 passed + 11 mcqueen_ml passed (18 total, excluding
+  torch collector); startup check 35/35 PASS.
 
 ## BLOCKER
-- None for the bootstrap itself.
-- For lab work: user is not at the lab yet; hardware access requires explicit per-command
-  authorization.
+- Hardware proof pending: tomorrow's lab run of run_rtp_wan_test.sh. No hardware
+  at home; HOME mode forbids Jetson/RTX access anyway.
 
 ## NEXT ACTION
 (EXACTLY ONE)
-- Run `.mcqueen/agent_startup_check.sh` and `python3 .mcqueen/agent_self_audit.py`, then the safe repo test suite, and record results in `.mcqueen/SESSION_LOG.md` + `.mcqueen/VERIFIED_FACTS.md`.
+- Tomorrow at lab (TEST-ONLY): `./tools/realtime/run_rtp_wan_test.sh` in a real
+  terminal. Green = NAT punch + RTX decoded frames + control return +
+  FULL_LOOP_LATENCY + 0 errors + 0 probe errors. Then record latency, log the
+  result in evidence/, and update these state files.
 
-## ACCEPTANCE CRITERIA
-- AGENTS.md exists at repo root.
-- All required `.mcqueen/` files exist and are non-empty, with required headings.
-- CURRENT_TASK has exactly one NEXT ACTION.
-- VERIFIED_FACTS entries carry SOURCE references.
-- Startup check + self-audit run read-only and report clean.
-- Safe local tests pass (known pre-existing failures documented, not silently fixed).
-
-## TEST PLAN
-1. `.mcqueen/agent_startup_check.sh` — read-only env/context verification.
-2. `python3 .mcqueen/agent_self_audit.py` — context-system health.
-3. Repo tests: `python3 -m pytest tests/ mcqueen_ml/ -q` (safe, local, no hardware).
-4. Record exact results.
+## ACCEPTANCE CRITERIA (tomorrow)
+- run_rtp_wan_test.sh green end-to-end; FULL_LOOP_LATENCY logged.
+- If not green: diagnose per docs/HOME_DEBUG_2026-08-13.md section 4 watch list.
+- Evidence + state files updated after the lab run.
 
 ## STATUS
-IN PROGRESS (bootstrap phase)
+COMPLETE (home debug) — pending hardware verification tomorrow
