@@ -138,6 +138,27 @@ Never silently overwrite historical decisions — append and mark superseded.
 
 ---
 
+## DECISION 010 — Lab-exit pull: mirror all machine state to laptop; fix confirmed sender bug
+
+- **DATE**: 2026-08-13
+- **QUESTION**: User is leaving the lab and needs everything (Jetson + RTX) on the laptop for
+  home debugging, plus repo state updated.
+- **EVIDENCE**: WAN-pipeline work lives only on the machines + untracked laptop files; 19-error
+  log documented the session; deployed scripts differ from laptop copies (md5s).
+- **OPTIONS**: (1) Pull everything and mirror into repo evidence; (2) pull nothing, rely on
+  memory. (2) rejected — machine state would be lost.
+- **DECISION**: Pull all WAN scripts/logs/pids + recordings from Jetson and RTX into
+  `docs/evidence/2026-08-13-lab-pull/` + `data/lab_pull_20260813/` (gitignored); fix the
+  confirmed `% 30 < n` NameError on the laptop sender copy; document findings; update all
+  `.mcqueen/` files. Use transient SSH_ASKPASS helper (error-log #1 pattern), delete after.
+- **WHY**: Home debugging + a future safe GitHub update need exact machine snapshots; the
+  NameError is a verified root-cause candidate for the frozen rtp_ts / frames_rx=0 symptom.
+- **CONSEQUENCES**: Evidence is now durable in-repo; sender must be redeployed next lab; RTX
+  receiver needs venv python. Code remains uncommitted until user authorizes.
+- **STATUS**: ACCEPTED (pull + fix done, verified)
+
+---
+
 ## DECISION 008 — Supermind context dumps are reference material, not binding rules
 
 - **DATE**: 2026-08-13

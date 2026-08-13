@@ -17,7 +17,19 @@ Each entry: question, why it matters, who/what can resolve it, status.
 - **Why**: Determines the fix target (crash? URL churn? babysitting? receiver pipeline bug?).
 - **Resolve**: Inspect `~/Downloads/mcqueen_wan_direct_p2p/` fix bundles + RTX logs at the lab.
 - **Status**: PARTIALLY VERIFIED — known pain points: nothing committed, random tunnel URL per
-  restart, no persistence/restart, ad-hoc debugging rounds. Root incident specifics UNKNOWN.
+  restart, no persistence/restart, ad-hoc debugging rounds. 2026-08-13 pull found two concrete
+  causes (F1 sender `% 30 < n` NameError freezing rtp_ts; F2 receiver started with wrong
+  python). Next session: deploy fixed sender + venv receiver, confirm rtp_ts advances.
+
+## Q2b — Sender rtp_ts advancement after F1 fix
+- **Question**: With the `% 30 == 0` fix, does the sender's per-frame rtp_ts advance and does the
+  RTX decode >1 frame (frames_rx > 0) end-to-end?
+- **Why**: The NameError froze rtp_ts at 0, which merges all frames into one AU on rtph264depay.
+  If the stall persists after the fix, the #19 camera-source issue is real and needs the
+  gst-launch isolation debug.
+- **Resolve**: Next lab session: deploy fixed sender, start receiver with gst-webrtc-venv python,
+  run full loop, check `SENT pkts` throttle prints + `rtp_ts` + `frames_rx`.
+- **Status**: UNVERIFIED (blocked until next lab).
 
 ## Q3 — Where did the broker/tunnel actually run on 2026-08-11?
 - **Question**: Host of broker.py + cloudflared during the proof.

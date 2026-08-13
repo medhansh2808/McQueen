@@ -1,0 +1,84 @@
+[RTX-GST] broker connecting ws://127.0.0.1:8765/ws?role=rtx&session=mcqueen
+[RTX-GST] broker connected
+[RTX-GST] STUN stun://stun.l.google.com:19302
+[RTX-GST] PLAYING <enum GST_STATE_CHANGE_SUCCESS of type Gst.StateChangeReturn>
+[RTX-GST] peer jetson connected
+[RTX-GST] offer received
+[RTX-GST] offer applied -> creating answer
+0:00:15.163662271 1791379 0x5f3627538120 WARN               webrtcbin gstwebrtcbin.c:4060:_create_answer_task:<recv> did not find compatible transceiver for offer caps application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)H264, packetization-mode=(string)1, profile-level-id=(string)42401f, sprop-parameter-sets=(string)"Z0JAH5ZUAoAtyA\=\=\,aM48gA\=\=", rtcp-fb-nack-pli=(boolean)true, will only receive
+[RTX-GST] answer sent
+[RTX-GST] LOCAL ICE host/other candidate:1 1 UDP 2015363327 192.168.0.124 56893 typ host
+[RTX-GST] LOCAL ICE host/other candidate:2 1 TCP 1015021823 192.168.0.124 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:3 1 TCP 1010827519 192.168.0.124 38671 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:4 1 UDP 2015363583 192.168.0.132 41778 typ host
+[RTX-GST] LOCAL ICE host/other candidate:5 1 TCP 1015022079 192.168.0.132 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:6 1 TCP 1010827775 192.168.0.132 36007 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:7 1 UDP 2015363839 10.27.100.101 59204 typ host
+[RTX-GST] LOCAL ICE host/other candidate:8 1 TCP 1015022335 10.27.100.101 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:9 1 TCP 1010828031 10.27.100.101 46545 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:10 1 UDP 2015364095 10.140.40.101 32775 typ host
+[RTX-GST] LOCAL ICE host/other candidate:11 1 TCP 1015022591 10.140.40.101 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:12 1 TCP 1010828287 10.140.40.101 51423 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:13 1 UDP 2015364351 fe80::eb48:c42e:ccbc:dd37 55272 typ host
+[RTX-GST] LOCAL ICE host/other candidate:14 1 TCP 1015022847 fe80::eb48:c42e:ccbc:dd37 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:15 1 TCP 1010828543 fe80::eb48:c42e:ccbc:dd37 56057 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:16 1 UDP 2015364607 fe80::36e4:4632:a607:5845 54068 typ host
+[RTX-GST] LOCAL ICE host/other candidate:17 1 TCP 1015023103 fe80::36e4:4632:a607:5845 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:18 1 TCP 1010828799 fe80::36e4:4632:a607:5845 33065 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:19 1 UDP 2015364863 fe80::4c8a:40ff:fe82:1329 58714 typ host
+[RTX-GST] LOCAL ICE host/other candidate:20 1 TCP 1015023359 fe80::4c8a:40ff:fe82:1329 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:21 1 TCP 1010829055 fe80::4c8a:40ff:fe82:1329 54295 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:22 1 UDP 2015365119 fe80::7471:5eff:fe25:acb4 33099 typ host
+[RTX-GST] LOCAL ICE host/other candidate:23 1 TCP 1015023615 fe80::7471:5eff:fe25:acb4 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:24 1 TCP 1010829311 fe80::7471:5eff:fe25:acb4 35139 typ host tcptype passive
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CHECKING of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] LOCAL ICE srflx candidate:25 1 UDP 1679819263 14.139.108.62 41778 typ srflx raddr 192.168.0.132 rport 41778
+[RTX-GST] LOCAL ICE srflx candidate:26 1 TCP 847249919 14.139.108.62 9 typ srflx raddr 192.168.0.132 rport 9 tcptype active
+[RTX-GST] LOCAL ICE srflx candidate:27 1 TCP 843055615 14.139.108.62 36007 typ srflx raddr 192.168.0.132 rport 36007 tcptype passive
+[RTX-GST] LOCAL ICE srflx candidate:28 1 UDP 1679819007 14.139.108.62 56893 typ srflx raddr 192.168.0.124 rport 56893
+[RTX-GST] LOCAL ICE srflx candidate:29 1 TCP 847249663 14.139.108.62 9 typ srflx raddr 192.168.0.124 rport 9 tcptype active
+[RTX-GST] LOCAL ICE srflx candidate:30 1 TCP 843055359 14.139.108.62 38671 typ srflx raddr 192.168.0.124 rport 38671 tcptype passive
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CONNECTED of type GstWebRTC.WebRTCICEConnectionState>
+0:00:18.110506119 1791379 0x7e34e0002000 WARN             dtlssrtpdec gstdtlssrtpdec.c:443:on_decoder_request_key:<dtlssrtpdec0> no srtp key available yet
+0:00:18.114612285 1791379 0x7e34e0002000 WARN             dtlssrtpdec gstdtlssrtpdec.c:443:on_decoder_request_key:<dtlssrtpdec0> no srtp key available yet
+0:00:18.117176577 1791379 0x7e34e0002000 WARN             dtlssrtpdec gstdtlssrtpdec.c:443:on_decoder_request_key:<dtlssrtpdec0> no srtp key available yet
+0:00:18.117191897 1791379 0x7e34e0002000 WARN             dtlssrtpdec gstdtlssrtpdec.c:443:on_decoder_request_key:<dtlssrtpdec0> no srtp key available yet
+[RTX-GST] incoming RTP pad src_0
+[RTX-GST] RTP -> decodebin link <enum GST_PAD_LINK_OK of type Gst.PadLinkReturn>
+[RTX-GST] decoded pad caps video/x-raw
+[RTX-GST] decoded video -> appsink READY
+[RTX-GST] VIDEO frames=1 avg_fps=0.1 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=3 avg_fps=0.2 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=6 avg_fps=0.3 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=9 avg_fps=0.4 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=12 avg_fps=0.5 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_COMPLETED of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] VIDEO frames=16 avg_fps=0.7 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=19 avg_fps=0.8 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=24 avg_fps=0.9 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CONNECTED of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] VIDEO frames=31 avg_fps=1.1 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_COMPLETED of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] VIDEO frames=38 avg_fps=1.3 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=43 avg_fps=1.4 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=52 avg_fps=1.7 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=58 avg_fps=1.8 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=67 avg_fps=2.0 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=71 avg_fps=1.7 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=75 avg_fps=1.7 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=79 avg_fps=1.8 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=87 avg_fps=1.9 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=92 avg_fps=2.0 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=99 avg_fps=2.1 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=105 avg_fps=2.2 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=112 avg_fps=2.2 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=117 avg_fps=2.3 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=122 avg_fps=2.3 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=126 avg_fps=2.3 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=131 avg_fps=2.4 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=137 avg_fps=2.5 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=144 avg_fps=2.5 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=148 avg_fps=2.5 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=157 avg_fps=2.7 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=161 avg_fps=2.7 caps=video/x-raw, format=(string)I420, width=(int)1280, height=(int)720, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] peer jetson disconnected

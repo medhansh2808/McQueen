@@ -1,0 +1,93 @@
+[RTX-GST] broker connecting ws://127.0.0.1:8765/ws?role=rtx&session=leave-local-20260811_193606
+[RTX-GST] broker connected
+[RTX-GST] WEBRTC JITTERBUFFER 20 ms
+[RTX-GST] PLAYING <enum GST_STATE_CHANGE_SUCCESS of type Gst.StateChangeReturn>
+[RTX-GST] peer jetson connected
+[RTX-GST] offer received
+[RTX-GST] offer applied -> creating answer
+[RTX-GST] answer sent
+[RTX-GST] LOCAL ICE host/other candidate:1 1 UDP 2015363327 192.168.0.132 32893 typ host
+[RTX-GST] LOCAL ICE host/other candidate:2 1 TCP 1015021823 192.168.0.132 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:3 1 TCP 1010827519 192.168.0.132 48781 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:4 1 UDP 2015363583 10.27.100.101 32870 typ host
+[RTX-GST] LOCAL ICE host/other candidate:5 1 TCP 1015022079 10.27.100.101 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:6 1 TCP 1010827775 10.27.100.101 52877 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:7 1 UDP 2015363839 10.140.40.101 51436 typ host
+[RTX-GST] LOCAL ICE host/other candidate:8 1 TCP 1015022335 10.140.40.101 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:9 1 TCP 1010828031 10.140.40.101 47923 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:10 1 UDP 2015364095 fe80::eb48:c42e:ccbc:dd37 48773 typ host
+[RTX-GST] LOCAL ICE host/other candidate:11 1 TCP 1015022591 fe80::eb48:c42e:ccbc:dd37 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:12 1 TCP 1010828287 fe80::eb48:c42e:ccbc:dd37 55049 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:13 1 UDP 2015364351 fe80::36e4:4632:a607:5845 35940 typ host
+[RTX-GST] LOCAL ICE host/other candidate:14 1 TCP 1015022847 fe80::36e4:4632:a607:5845 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:15 1 TCP 1010828543 fe80::36e4:4632:a607:5845 48627 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:16 1 UDP 2015364607 fe80::4c8a:40ff:fe82:1329 36707 typ host
+[RTX-GST] LOCAL ICE host/other candidate:17 1 TCP 1015023103 fe80::4c8a:40ff:fe82:1329 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:18 1 TCP 1010828799 fe80::4c8a:40ff:fe82:1329 33977 typ host tcptype passive
+[RTX-GST] LOCAL ICE host/other candidate:19 1 UDP 2015364863 fe80::7471:5eff:fe25:acb4 58744 typ host
+[RTX-GST] LOCAL ICE host/other candidate:20 1 TCP 1015023359 fe80::7471:5eff:fe25:acb4 9 typ host tcptype active
+[RTX-GST] LOCAL ICE host/other candidate:21 1 TCP 1010829055 fe80::7471:5eff:fe25:acb4 52719 typ host tcptype passive
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CHECKING of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CONNECTED of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] incoming RTP pad src_0
+[RTX-GST] RTP -> decodebin link <enum GST_PAD_LINK_OK of type Gst.PadLinkReturn>
+[RTX-GST] decoded pad caps video/x-raw
+[RTX-GST] decoded video -> appsink READY
+[RTX-GST] VIDEO frames=1 avg_fps=0.1 recv_age=69.2ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] PYTORCH ready cuda=True device=NVIDIA GeForce RTX 4090
+[RTX-GST] VIDEO frames=6 avg_fps=0.5 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=37 avg_fps=2.7 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=10 last=1.32ms avg20=28.42ms action=(89.3,0)
+[RTX-GST] VIDEO frames=63 avg_fps=4.2 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=92 avg_fps=5.8 recv_age=15.5ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=20 last=0.66ms avg20=14.47ms action=(89.3,0)
+[RTX-GST] VIDEO frames=126 avg_fps=7.4 recv_age=8.6ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_COMPLETED of type GstWebRTC.WebRTCICEConnectionState>
+[RTX-GST] DUMMY_INFER count=30 last=0.50ms avg20=0.79ms action=(89.3,0)
+[RTX-GST] VIDEO frames=157 avg_fps=8.7 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=188 avg_fps=9.9 recv_age=12.5ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=40 last=0.65ms avg20=0.99ms action=(89.3,0)
+[RTX-GST] VIDEO frames=215 avg_fps=10.8 recv_age=1.8ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=249 avg_fps=11.8 recv_age=9.4ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=50 last=0.38ms avg20=0.86ms action=(89.3,0)
+[RTX-GST] VIDEO frames=280 avg_fps=12.7 recv_age=10.5ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=60 last=0.38ms avg20=0.85ms action=(89.3,0)
+[RTX-GST] VIDEO frames=311 avg_fps=13.5 recv_age=1.2ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=341 avg_fps=14.2 recv_age=13.8ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=70 last=0.72ms avg20=0.89ms action=(89.3,0)
+[RTX-GST] VIDEO frames=368 avg_fps=14.6 recv_age=0.8ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=80 last=0.89ms avg20=0.95ms action=(89.3,0)
+[RTX-GST] VIDEO frames=405 avg_fps=15.4 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=435 avg_fps=16.0 recv_age=9.7ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=90 last=2.53ms avg20=1.03ms action=(89.3,0)
+[RTX-GST] VIDEO frames=462 avg_fps=16.3 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=489 avg_fps=16.6 recv_age=0.7ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=100 last=0.68ms avg20=1.20ms action=(89.3,0)
+[RTX-GST] VIDEO frames=517 avg_fps=16.9 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=548 avg_fps=17.4 recv_age=3.6ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=110 last=0.81ms avg20=1.36ms action=(89.3,0)
+[RTX-GST] VIDEO frames=578 avg_fps=17.7 recv_age=12.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=120 last=2.27ms avg20=1.46ms action=(89.3,0)
+[RTX-GST] VIDEO frames=608 avg_fps=18.1 recv_age=12.7ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=639 avg_fps=18.5 recv_age=9.7ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=130 last=0.38ms avg20=1.25ms action=(89.3,0)
+[RTX-GST] VIDEO frames=667 avg_fps=18.7 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=698 avg_fps=19.0 recv_age=3.9ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=140 last=0.82ms avg20=0.98ms action=(89.3,0)
+[RTX-GST] VIDEO frames=729 avg_fps=19.3 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=150 last=1.20ms avg20=1.02ms action=(89.3,0)
+[RTX-GST] VIDEO frames=759 avg_fps=19.6 recv_age=12.7ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=790 avg_fps=19.9 recv_age=6.3ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=160 last=1.23ms avg20=1.02ms action=(89.3,0)
+[RTX-GST] VIDEO frames=818 avg_fps=20.1 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=848 avg_fps=20.3 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=170 last=1.62ms avg20=1.04ms action=(89.3,0)
+[RTX-GST] VIDEO frames=875 avg_fps=20.5 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=180 last=0.86ms avg20=1.17ms action=(89.3,0)
+[RTX-GST] VIDEO frames=904 avg_fps=20.7 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=929 avg_fps=20.7 recv_age=0.0ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=190 last=0.98ms avg20=1.16ms action=(89.3,0)
+[RTX-GST] VIDEO frames=950 avg_fps=20.7 recv_age=2.6ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] VIDEO frames=987 avg_fps=21.0 recv_age=9.1ms caps=video/x-raw, format=(string)I420, width=(int)640, height=(int)360, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)0/1
+[RTX-GST] DUMMY_INFER count=200 last=1.24ms avg20=1.03ms action=(89.3,0)
+[RTX-GST] peer jetson disconnected

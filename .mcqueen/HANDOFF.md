@@ -51,18 +51,25 @@ capture_mono_ns` on Jetson clock; newest-frame-wins; benchmark-v2 reports stages
 (SIGNALING_P2P … FULL_LOOP_LATENCY).
 
 ## Current Git state
-Branch `jetson-nano`, HEAD `5cc716c`, clean. Remote: github.com/medhansh2808/McQueen.git.
-Untracked: `context stuff for understanding the mcqueen project/` (local context dumps),
-plus newly created agent files (AGENTS.md, .mcqueen/) — NOT committed (user rule: update GitHub
-only when hardware works).
+Branch `jetson-nano`, HEAD `cf8ac2c` (trigger-phrase commit). Remote:
+github.com/medhansh2808/McQueen.git. Untracked (NOT committed): WAN pipeline
+files `tools/realtime/{gst_jetson_rtp_wan.py, gst_rtx_rtp_receiver.py,
+appsrc_rtp_ts_test.py, test_rtp_association.py}`, evidence pull
+`docs/evidence/2026-08-13-lab-pull/` + `2026-08-13-wan-pipeline-errors.txt`,
+`context stuff for understanding the mcqueen project/` (local context dumps).
+User rule: update GitHub only when hardware works — commit timing is user's call.
 
 ## Important machines / paths
 - Laptop repo: `/home/kartik/McQueenWork/McQueen`
-- Jetson: reachable at lab via USB (192.168.55.1) or hotspot; passwords required every command.
-- RTX 4090: lab Wi-Fi; user `junior`/`omen` (verify); `rtx4090_preflight_v2.sh` to inspect.
+- Jetson: `sravjti@192.168.55.1` (USB) — VERIFIED 2026-08-13; kernel 4.9.253; camera present;
+  mcqueen-edge.service inactive+enabled. Passwords required every command.
+- RTX 4090: `junior@192.168.0.132` (wired) / `.179` (wifi), hostname `omen` — VERIFIED 2026-08-13;
+  broker + cloudflared RUNNING; receiver must use `/var/tmp/mcqueen-junior/gst-webrtc-venv/bin/python`.
 - WAN pipeline bundle (NOT in repo): `~/Downloads/mcqueen_wan_direct_p2p/` — broker.py on RTX
   at 127.0.0.1:8765 + cloudflared Quick Tunnel rendezvous.
 - RTX candidate temporal package: `~/Downloads/mcqueen_rtx_candidate_20260812/`.
+- 2026-08-13 lab-exit pull (complete machine snapshots + logs): `docs/evidence/2026-08-13-lab-pull/`;
+  recordings: `data/lab_pull_20260813/`. Manifest: `docs/evidence/2026-08-13-lab-pull/README.md`.
 
 ## Key constraints
 - No fabrication — use VERIFIED / PARTIALLY VERIFIED / UNVERIFIED / BLOCKED / FAILED / UNKNOWN.
@@ -72,10 +79,12 @@ only when hardware works).
 - ChatGPT independence: reasoning lives in repo files, not external chat.
 
 ## Current task
-See `.mcqueen/CURRENT_TASK.md`. At last update: agent bootstrap being verified (startup check +
-self-audit + safe tests). After that, next lab objective = make the Jetson→RTX realtime WAN
-pipeline solid & reproducible (Option A: broker+tunnel as persistent services on always-on RTX),
-so the next session can record datasets + train.
+See `.mcqueen/CURRENT_TASK.md`. Last update (2026-08-13 lab exit): full Jetson+RTX pull to
+laptop complete; sender bug F1 found+fixed on laptop copy; evidence + recordings mirrored.
+Next: home debugging / commit decision, then next lab objective = make the Jetson→RTX realtime
+WAN pipeline solid & reproducible (Option A: broker+tunnel as persistent services on always-on
+RTX), so the next session can record datasets + train. Redoploy fixed sender + venv receiver
+first (see `docs/evidence/2026-08-13-lab-pull/README.md` + OPEN_QUESTIONS Q2b).
 
 ## Verified facts
 See `.mcqueen/VERIFIED_FACTS.md` (each fact has SOURCE + confidence). Highlights: dataset-v2 +
@@ -85,8 +94,15 @@ temporal core home-validated (2026-08-12); 3 hardware milestones lab-verified (2
 See `.mcqueen/OPEN_QUESTIONS.md` (motor-PWM live probe, broker host confirmation, RTX env
 readiness, WAN "server" failure specifics).
 
-## Next action (at the lab)
-Phase A per `docs/NEXT_LAB_RUNBOOK.md`:
+## Next action (home: now)
+1. Decide commit: WAN pipeline code + evidence are untracked and ready (user said "safely update
+   github at home") — commit locally, push only when user says (hardware-works rule).
+2. Home debug: analyze `docs/evidence/2026-08-13-lab-pull/` logs (F1/F2/F3/F4 in README).
+
+## Next action (at the next lab)
+Phase A per `docs/NEXT_LAB_RUNBOOK.md`, PLUS first: deploy the FIXED laptop sender
+(`tools/realtime/gst_jetson_rtp_wan.py`) to the Jetson and start the RTX receiver with the
+venv python; confirm rtp_ts advances + frames_rx > 0 (OPEN_QUESTIONS Q2b). Then:
 1. Jetson health preflight (`jetson_no_drivetrain_preflight.sh`) + verify `mcqueen-edge.service`.
 2. Network matrix (USB/hotspot/lab Wi-Fi/RTX reachability).
 3. Live KACHOW probe (motor-PWM blocker check).

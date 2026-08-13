@@ -1,0 +1,88 @@
+[JETSON-CAM] broker connecting wss://unfortunately-wrestling-kim-traveller.trycloudflare.com/ws?role=jetson&session=mcqueen
+[JETSON-CAM] broker connected
+[JETSON-CAM] camera /dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._Lenovo_FHD_Webcam_Audio_SN0001-video-index0
+[JETSON-CAM] pipeline: Lenovo MJPEG 1280x720@30 -> NVDEC -> NVENC H264 -> WebRTC
+[JETSON-CAM] STUN stun://stun.l.google.com:19302
+Opening in BLOCKING MODE 
+Opening in BLOCKING MODE 
+[JETSON-CAM] PLAYING <enum GST_STATE_CHANGE_SUCCESS of type Gst.StateChangeReturn>
+NvMMLiteOpen : Block : BlockType = 277 
+NVMEDIA: Reading vendor.tegra.display-size : status: 6 
+NvMMLiteBlockCreate : Block : BlockType = 277 
+NvMMLiteOpen : Block : BlockType = 4 
+===== NVMEDIA: NVENC =====
+NvMMLiteBlockCreate : Block : BlockType = 4 
+H264: Profile = 66, Level = 0 
+[JETSON-CAM] negotiation needed
+[JETSON-CAM] offer sent
+[JETSON-CAM] LOCAL ICE host/other candidate:1 1 UDP 2013266431 fe80::e907:6d73:f0a:e6d3 34653 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:2 1 TCP 1015025151 fe80::e907:6d73:f0a:e6d3 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:3 1 TCP 1010830847 fe80::e907:6d73:f0a:e6d3 60227 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:4 1 UDP 2013266430 fe80::c0a7:c52e:8b52:dbea 34056 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:5 1 TCP 1015025150 fe80::c0a7:c52e:8b52:dbea 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:6 1 TCP 1010830846 fe80::c0a7:c52e:8b52:dbea 43657 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:7 1 UDP 2013266429 2409:40c0:50:caa1:4ee5:8365:fb45:c96a 54841 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:8 1 TCP 1015022335 2409:40c0:50:caa1:4ee5:8365:fb45:c96a 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:9 1 TCP 1010828031 2409:40c0:50:caa1:4ee5:8365:fb45:c96a 51817 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:10 1 UDP 2013266428 2409:40c0:50:caa1:c93a:78b:c50c:8d5c 60406 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:11 1 TCP 1015022591 2409:40c0:50:caa1:c93a:78b:c50c:8d5c 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:12 1 TCP 1010828287 2409:40c0:50:caa1:c93a:78b:c50c:8d5c 33969 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:13 1 UDP 2013266427 fe80::b4c7:aaff:fe1a:45a3 60615 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:14 1 TCP 1015025149 fe80::b4c7:aaff:fe1a:45a3 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:15 1 TCP 1010830845 fe80::b4c7:aaff:fe1a:45a3 45951 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:16 1 UDP 2013266426 fe80::b4c7:aaff:fe1a:45a1 34829 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:17 1 TCP 1015025148 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:18 1 TCP 1010830844 fe80::b4c7:aaff:fe1a:45a1 60125 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:19 1 UDP 2013266425 fe80::b4c7:aaff:fe1a:45a1 52960 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:20 1 TCP 1015025147 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:21 1 TCP 1010830843 fe80::b4c7:aaff:fe1a:45a1 42707 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:22 1 UDP 2013266424 fe80::1 47697 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:23 1 TCP 1015025146 fe80::1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:24 1 TCP 1010830842 fe80::1 59577 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:25 1 UDP 2013266423 172.17.0.1 56958 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:26 1 TCP 1015023871 172.17.0.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:27 1 TCP 1010829567 172.17.0.1 57557 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:28 1 UDP 2013266422 10.147.40.55 52143 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:29 1 TCP 1015024127 10.147.40.55 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:30 1 TCP 1010829823 10.147.40.55 34803 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:31 1 UDP 2013266421 192.168.55.1 58102 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:32 1 TCP 1015024383 192.168.55.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:33 1 TCP 1010830079 192.168.55.1 55893 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:1 2 UDP 2013266430 fe80::e907:6d73:f0a:e6d3 40858 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:2 2 TCP 1015025150 fe80::e907:6d73:f0a:e6d3 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:3 2 TCP 1010830846 fe80::e907:6d73:f0a:e6d3 35697 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:4 2 UDP 2013266429 fe80::c0a7:c52e:8b52:dbea 44580 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:5 2 TCP 1015025149 fe80::c0a7:c52e:8b52:dbea 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:6 2 TCP 1010830845 fe80::c0a7:c52e:8b52:dbea 37073 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:7 2 UDP 2013266428 2409:40c0:50:caa1:4ee5:8365:fb45:c96a 52756 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:8 2 TCP 1015022334 2409:40c0:50:caa1:4ee5:8365:fb45:c96a 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:9 2 TCP 1010828030 2409:40c0:50:caa1:4ee5:8365:fb45:c96a 42757 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:10 2 UDP 2013266427 2409:40c0:50:caa1:c93a:78b:c50c:8d5c 56004 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:11 2 TCP 1015022590 2409:40c0:50:caa1:c93a:78b:c50c:8d5c 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:12 2 TCP 1010828286 2409:40c0:50:caa1:c93a:78b:c50c:8d5c 60205 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:13 2 UDP 2013266426 fe80::b4c7:aaff:fe1a:45a3 60378 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:14 2 TCP 1015025148 fe80::b4c7:aaff:fe1a:45a3 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:15 2 TCP 1010830844 fe80::b4c7:aaff:fe1a:45a3 52367 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:16 2 UDP 2013266425 fe80::b4c7:aaff:fe1a:45a1 52182 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:17 2 TCP 1015025147 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:18 2 TCP 1010830843 fe80::b4c7:aaff:fe1a:45a1 46089 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:19 2 UDP 2013266424 fe80::b4c7:aaff:fe1a:45a1 36111 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:20 2 TCP 1015025146 fe80::b4c7:aaff:fe1a:45a1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:21 2 TCP 1010830842 fe80::b4c7:aaff:fe1a:45a1 39789 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:22 2 UDP 2013266423 fe80::1 37166 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:23 2 TCP 1015025145 fe80::1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:24 2 TCP 1010830841 fe80::1 51307 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:25 2 UDP 2013266422 172.17.0.1 35641 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:26 2 TCP 1015023870 172.17.0.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:27 2 TCP 1010829566 172.17.0.1 35241 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:28 2 UDP 2013266421 10.147.40.55 40284 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:29 2 TCP 1015024126 10.147.40.55 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:30 2 TCP 1010829822 10.147.40.55 43969 typ host tcptype passive
+[JETSON-CAM] LOCAL ICE host/other candidate:31 2 UDP 2013266420 192.168.55.1 48152 typ host
+[JETSON-CAM] LOCAL ICE host/other candidate:32 2 TCP 1015024382 192.168.55.1 9 typ host tcptype active
+[JETSON-CAM] LOCAL ICE host/other candidate:33 2 TCP 1010830078 192.168.55.1 42927 typ host tcptype passive
+[JETSON-CAM] answer applied
+[JETSON-CAM] ICE <enum GST_WEBRTC_ICE_CONNECTION_STATE_CHECKING of type GstWebRTC.WebRTCICEConnectionState>
+[JETSON-CAM] peer rtx disconnected
+[JETSON-CAM] peer rtx connected
+[JETSON-CAM] peer rtx disconnected

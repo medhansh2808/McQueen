@@ -1,0 +1,306 @@
+================================================================================
+MCQUEEN WAN/SERVER PIPELINE — ERROR LOG (2026-08-13 lab session)
+================================================================================
+Scope: Jetson <-> RTX realtime WAN pipeline ("the server thing") work at the
+2026-08-13 lab. Every error, root cause, and resolution (or workaround) is
+recorded below. Intended to be committed to GitHub during the next sync.
+
+--------------------------------------------------------------------------------
+1. SSH password prompt fails in non-interactive agent shell
+--------------------------------------------------------------------------------
+SYMPTOM:    ssh from the agent shell prints "ssh_askpass: exec(/usr/bin/
+            ssh-askpass): No such file or directory" then "Permission denied".
+ROOT CAUSE: The agent terminal has no TTY (stdin is not a terminal) and
+            DISPLAY is set but no ssh-askpass helper exists. SSH cannot prompt
+            for a password non-interactively.
+RESOLUTION: Use a transient askpass helper: write a small script that echoes
+            the password, chmod 700, run with SSH_ASKPASS + SSH_ASKPASS_
+            REQUIRE=force under setsid, delete the helper afterwards. Password
+            is never written to the repo and the helper is removed after use.
+STATUS:     RESOLVED (workaround; native interactive SSH still requires the
+            human to run commands in their own terminal)
+
+--------------------------------------------------------------------------------
+2. SSH command hangs / times out when starting background processes
+--------------------------------------------------------------------------------
+SYMPTOM:    ssh that launches a nohup background process and then echoes
+            output times out ("Command timed out"). The process IS started.
+ROOT CAUSE: ssh keeps the channel open while the backgrounded process holds
+            stdout/stderr fds, so the command never returns.
+RESOLUTION: Start the process in one ssh call (quick return), then verify
+            state with a separate ssh call. Do not chain verification into the
+            same command that backgrounds a process.
+STATUS:     RESOLVED (operational pattern)
+
+--------------------------------------------------------------------------------
+3. Broker starts but SSH reports failure
+--------------------------------------------------------------------------------
+SYMPTOM:    broker.py start command timed out, looked like a failure.
+ROOT CAUSE: Same as #2 — background process held the SSH channel.
+RESOLUTION: Verified separately: broker WAS running and healthy at
+            http://127.0.0.1:8765/health -> {"ok": true}.
+STATUS:     RESOLVED (false alarm)
+
+--------------------------------------------------------------------------------
+4. cloudflared tunnel start: same SSH timeout pattern
+--------------------------------------------------------------------------------
+SYMPTOM:    Start command timed out.
+ROOT CAUSE: Same as #2.
+RESOLUTION: Verified separately: cloudflared running, public URL obtained:
+            https://unfortunately-wrestling-kim-traveller.trycloudflare.com
+            All Cloudflare prechecks passed (UDP/TCP/API).
+STATUS:     RESOLVED (false alarm)
+
+--------------------------------------------------------------------------------
+5. RTX receiver "DEAD" report was a stale pid file
+--------------------------------------------------------------------------------
+SYMPTOM:    After starting gst_rtx_receiver_wan.py, pid file was empty so the
+            check printed "DEAD".
+ROOT CAUSE: The pid file was written incorrectly (empty) but the process was
+            alive; "DEAD" was based on the empty pid file.
+RESOLUTION: Verified via pgrep: process alive, broker showed session
+            {"mcqueen": ["rtx"]}. Use pgrep for liveness, not pid files.
+STATUS:     RESOLVED (false alarm)
+
+--------------------------------------------------------------------------------
+6. WebRTC ICE FAILED — Jetson gathers zero srflx candidates (THE BIG ONE)
+--------------------------------------------------------------------------------
+SYMPTOM:    WebRTC video never connected over the WAN. RTX receiver showed
+            "ICE ... FAILED"; Jetson sender stuck in CHECKING forever.
+ROOT CAUSE: Jetson GStreamer 1.14.5 + libnice 0.1.14 webrtcbin gathers only
+            "host" candidates and ZERO "srflx" (server-reflexive) candidates
+            even with stun-server property set. Without a srflx candidate the
+            Jetson advertises only its private 10.147.x (CGNAT) address, which
+            the RTX cannot reach. RTX (GStreamer 1.20.3 + libnice 0.1.18)
+            gathers srflx fine. This is a GStreamer-version limitation, not a
+            network/config problem.
+EVIDENCE:   Raw STUN from the Jetson WORKS (UDP binding request -> mapped
+            address 152.58.1.190 in 69ms). So the network is fine; the old
+            webrtcbin simply does not turn STUN into srflx candidates.
+RESOLUTION: Abandon WebRTC for video. Use raw RTP-over-UDP over the SAME
+            manual STUN + broker rendezvous NAT-punch pattern that already
+            proved 60/60 ACKs at p50 43.1ms for control (tools/realtime/
+            direct_udp_peer.py). New scripts: tools/realtime/gst_jetson_rtp_
+            wan.py (sender) + tools/realtime/gst_rtx_rtp_receiver.py.
+STATUS:     WORKAROUND DEPLOYED; WebRTC remains BROKEN on Jetson's stack.
+            A future fix could be: newer GStreamer/libnice on the Jetson,
+            or a TURN relay. Neither needed for the <100ms proof (see #8).
+
+--------------------------------------------------------------------------------
+7. STUN TCP test gave a misleading result
+--------------------------------------------------------------------------------
+SYMPTOM:    "STUN UNREACHABLE" when testing stun.l.google.com:19302 over TCP.
+ROOT CAUSE: STUN is a UDP protocol; the TCP test was invalid.
+RESOLUTION: Wrote a raw STUN UDP binding-request test: SUCCESS in 69ms,
+            mapped 152.58.1.190. This proved the network path is fine and
+            isolated the problem to GStreamer (see #6).
+STATUS:     RESOLVED (test methodology)
+
+--------------------------------------------------------------------------------
+8. College blocks mesh networking (Tailscale/ZeroTier)
+--------------------------------------------------------------------------------
+SYMPTOM:    Proposed mesh fallback (Tailscale on Jetson, ZeroTier already on
+            RTX as zttqh75w2z/ztcdch3h6f) rejected.
+ROOT CAUSE: College network on the lab Wi-Fi blocks Tailscale/ZeroTier
+            (user-confirmed, already tried previously).
+RESOLUTION: Dropped mesh options. Direct NAT-punched UDP does not depend on
+            either and is the chosen transport (see #6 resolution).
+STATUS:     CLOSED (external constraint)
+
+--------------------------------------------------------------------------------
+9. Sender bug: one capture entry consumed per RTP packet instead of per frame
+--------------------------------------------------------------------------------
+SYMPTOM:    (found during code review before deployment) — the rtph264pay pad
+            probe popped one (frame_id, capture_mono_ns) from the capture
+            queue for EVERY RTP packet, but each frame produces multiple RTP
+            packets, so frame metadata would have been misaligned.
+ROOT CAUSE: Probes fire per-packet; the code assumed per-frame.
+RESOLUTION: Detect frame boundaries by RTP timestamp change; consume exactly
+            one capture entry per new timestamp. Verified by unit test
+            tools/realtime/test_rtp_association.py (5 frames, exact order).
+STATUS:     RESOLVED (pre-deployment catch)
+
+--------------------------------------------------------------------------------
+10. Rendezvous announce window too short (late-starting peer never learns)
+--------------------------------------------------------------------------------
+SYMPTOM:    Sender started AFTER the receiver's 8-second announce window
+            expired -> "RTX UDP candidate missing after repeated
+            announcements".
+ROOT CAUSE: Both sides only announced their UDP candidate for 8 seconds at
+            startup. If a peer connects late, it never receives the address.
+RESOLUTION: Announce continuously for the whole run (thread loops every
+            0.35s until stop), and wait for the peer up to 60s.
+STATUS:     RESOLVED (both scripts updated, redeployed)
+
+--------------------------------------------------------------------------------
+11. Wait loop punched to its own public address (harmless but pointless)
+--------------------------------------------------------------------------------
+SYMPTOM:    During the peer-wait loop the code sent PUNCH2 to its OWN public
+            address before the peer was known.
+ROOT CAUSE: Sloppy rendezvous copy.
+RESOLUTION: Remove self-punch; only drain packets while waiting, punch at the
+            learned peer after discovery.
+STATUS:     RESOLVED (code cleanup)
+
+--------------------------------------------------------------------------------
+12. NAT punch SUCCEEDED then RTX became unreachable (stale ARP on laptop)
+--------------------------------------------------------------------------------
+SYMPTOM:    After DIRECT_UDP_READY, SSH to RTX failed: "Connection timed out"
+            then "No route to host". Pings 0/4, ARP FAILED/INCOMPLETE on both
+            RTX IPs (192.168.0.132 wired, 192.168.0.179 wifi).
+ROOT CAUSE: Laptop's stale ARP cache for the RTX (the machine itself was fine
+            — user SSH'd to it successfully from a normal terminal).
+RESOLUTION: Flush laptop ARP cache and re-verify. RTX hardware untouched.
+STATUS:     RESOLVED (laptop-side cache issue)
+
+--------------------------------------------------------------------------------
+13. Test harness bugs (local unit test, not deployed)
+--------------------------------------------------------------------------------
+SYMPTOM:    TypeError 'int' object is not subscriptable; "too many values to
+            unpack" in the throwaway simulation.
+ROOT CAUSE: Buggy inline test code (subscripted an int; capture_q held
+            3-tuples but unpacked 2).
+RESOLUTION: Rewrote as tools/realtime/test_rtp_association.py; PASS.
+STATUS:     RESOLVED (test only)
+
+--------------------------------------------------------------------------------
+14. Laptop lacks H.264 GStreamer plugins
+--------------------------------------------------------------------------------
+SYMPTOM:    gst-launch test pipeline on the laptop: 'no element "h264parse"'.
+ROOT CAUSE: Laptop GStreamer install lacks gst-plugins-bad/good H.264
+            elements; laptop is not the target runtime for this test anyway.
+RESOLUTION: Target machines verified instead: RTX has all receiver elements
+            (appsrc, rtph264depay, h264parse, decodebin, videoconvert,
+            appsink, nvh264dec NVDEC) and Jetson has all sender elements
+            (v4l2src, jpegparse, nvv4l2decoder, nvvidconv, nvv4l2h264enc,
+            h264parse, rtph264pay). No action needed.
+STATUS:     CLOSED (non-issue for deployment)
+
+--------------------------------------------------------------------------------
+15. Pre-existing repo issues noticed during the session (NOT caused by this
+    work, recorded for completeness)
+--------------------------------------------------------------------------------
+- tests/test_jetson_http_server.py fails (expects old "OAK-D/WebRTC" HTML).
+- tests/test_jetson_edge_app.py fails at import time (module-level assert on
+  /api/log/start -> recording False in this environment).
+- mcqueen_ml/training/test_temporal_policy_v2.py needs torch (lives in the
+  mcqueen-laptop env, not system python3.10).
+- tools/preflight/laptop_lab_preflight.sh checks the obsolete steering
+  mapping (-1000->45deg vs current -1000->115deg).
+STATUS:     DOCUMENTED; fixes deferred (require user authorization)
+
+--------------------------------------------------------------------------------
+16. Sender crashed right after NVENC init (use-after-free in RTP probe)
+--------------------------------------------------------------------------------
+SYMPTOM:    gst_jetson_rtp_wan.py reached NVENC init ("===== NVMEDIA: NVENC
+            =====" in log) then the process died. No traceback in log.
+ROOT CAUSE: The rtph264pay pad probe read mapinfo.data and then used that
+            bytes object AFTER calling buf.unmap(). On the Jetson's old
+            GStreamer 1.14 / PyGObject stack this is a use-after-free that
+            crashes the process around the first encoded frame. (The RTX,
+            on GStreamer 1.20/PyGObject 3.42, tolerates it — which is why
+            the laptop test and RTX-side code never crashed.)
+RESOLUTION: Copy payload with bytes(mapinfo.data) while the buffer is still
+            mapped, before unmap(). Also wrapped both pad probes in
+            try/except that logs to /tmp/mcq_sender_probe_errors.log and
+            returns OK instead of letting an exception kill the process.
+STATUS:     FIXED (deployed to Jetson on next restart)
+
+--------------------------------------------------------------------------------
+17. RTX receiver died: "Jetson UDP candidate missing after repeated
+    announcements"
+--------------------------------------------------------------------------------
+SYMPTOM:    gst_rtx_rtp_receiver.py exited with RuntimeError after the sender
+            crashed (see #16) — receiver waited its full 60s for a Jetson
+            candidate that never came because the sender died first.
+ROOT CAUSE: Cascading failure: sender crash (#16) -> receiver timeout.
+RESOLUTION: Fix #16 and restart both together. No receiver code change needed
+            (the 60s wait + continuous announce already handles late peers).
+STATUS:     RESOLVED (restart both after #16 fix deployed)
+
+--------------------------------------------------------------------------------
+18. Jetson SSH rejected: WRONG USERNAME (not pam_faillock)
+--------------------------------------------------------------------------------
+SYMPTOM:    SSH to Jetson returned "Permission denied (publickey,password)"
+            with the correct password for many minutes. sshd banner responded
+            fine. Wasted ~10 min retrying.
+ROOT CAUSE: The agent was SSHing as kartik@192.168.55.1 but the Jetson user
+            is sravjti@ (user confirmed: sravjti@192.168.55.1). The password
+            was correct the whole time; the username was wrong.
+RESOLUTION: Use sravjti@192.168.55.1 (password REDACTED — kept out of git;
+            user supplies it interactively each session). A power-cycle was
+            done anyway (harmless) and reconnect succeeded immediately with
+            the right username.
+STATUS:     RESOLVED. LESSON: always confirm BOTH username AND password when
+            taking over hardware access; do not assume the account name.
+
+--------------------------------------------------------------------------------
+19. Sender stalls after ONE frame (encoder produces 30 pkts / 1 meta then
+    blocks at 0% CPU) — camera pipeline quirk, UNRESOLVED
+--------------------------------------------------------------------------------
+SYMPTOM:    gst_jetson_rtp_wan.py reaches PLAYING + NVENC init, sends exactly
+            one frame's worth of RTP (SENT pkts=30 meta=1) then stalls: 0% CPU,
+            no more packets, no probe errors, process alive. RTX receiver sees
+            RTP_RX pkts continuing to 60/90 (interleaved re-sends) but
+            frames_rx stays 0 (no completed marker-bit frame).
+ROOT CAUSE: NOT the use-after-free (that is fixed, #16). NOT the queue
+            (changed max-size-buffers=2 leaky=downstream -> 4 leaky=no, same
+            stall). The encoder chain produces one keyframe then v4l2src or
+            nvv4l2decoder blocks — a Jetson MJPEG camera/decoder quirk in the
+            ASYNC PLAYING transition. Transport is 100% proven working; this
+            is a sender-side camera pipeline stall.
+RESOLUTION: UNRESOLVED. Next session candidates: (a) camera may need a USB
+            re-enumeration / different resolution (the camera was just used by
+            mcqueen-edge), (b) try dropping nvv4l2decoder mjpeg=1 and using
+            software decode, (c) try do-timestamp=false, (d) test the same
+            pipeline with gst-launch to isolate whether v4l2src or the decoder
+            blocks, (e) check GST_DEBUG=*v4l2*:5 output. Transport code is
+            done; only the Jetson source chain needs this fix.
+STATUS:     OPEN — needs Jetson-side camera debugging. NOT a WAN problem.
+
+--------------------------------------------------------------------------------
+20. Sender probe NameError flood: `% 30 < n` with undefined `n` (FOUND in
+    pulled evidence, FIXED on laptop copy)
+--------------------------------------------------------------------------------
+SYMPTOM:    /tmp/mcq_sender_probe_errors.log = 22,209 lines, ALL
+            `NameError("name 'n' is not defined")` — one per RTP packet.
+ROOT CAUSE: The 584-line cv2+x264 laptop copy of gst_jetson_rtp_wan.py
+            (19:20) had `if self.sent_pkts % 30 < n:` where `n` is undefined
+            (the loop uses `for ni, nal in enumerate(nals)`). The try/except
+            in on_rtp_probe caught it and kept the process alive, but the
+            exception fired BEFORE `self.rtp_ts += self.rtp_ts_step`, so
+            rtp_ts never advanced -> every frame sent with RTP timestamp 0
+            -> rtph264depay on the RTX merges all frames into one AU (the
+            "1 frame decoded / frames_rx 0" symptom).
+RESOLUTION: FIXED on the laptop copy: `% 30 == 0` (matches the older deployed
+            sender, which was correct). py_compile + unit test pass. The
+            deployed Jetson sender (17:25, 411 lines, v4l2src/NVENC-era) did
+            NOT have this bug — the newer laptop copy must be redeployed.
+STATUS:     FIXED (laptop copy; redeploy to Jetson next lab session)
+
+--------------------------------------------------------------------------------
+21. RTX receiver lab16 crashed: ModuleNotFoundError websocket (wrong python)
+--------------------------------------------------------------------------------
+SYMPTOM:    gst_rtx_rtp_receiver_lab16.log (last run, 19:40) =
+            `ModuleNotFoundError: No module named 'websocket'`.
+ROOT CAUSE: Receiver started with system python instead of the venv.
+RESOLUTION: Per run_direct_wan_test.sh, use
+            /var/tmp/mcqueen-junior/gst-webrtc-venv/bin/python.
+STATUS:     RESOLVED (operational)
+
+================================================================================
+KEY LESSON
+================================================================================
+WebRTC on the Jetson's GStreamer 1.14.5/libnice 0.1.14 cannot gather srflx
+candidates, so it cannot traverse the phone-hotspot CGNAT. The reliable WAN
+transport for McQueen is raw RTP-over-direct-NAT-punched-UDP, using the same
+proven rendezvous as the control path. Everything else in this log is
+operational friction, not architecture. Second lesson: the Jetson's old
+GStreamer/PyGObject stack is stricter than the RTX's — buffer mapping must be
+released properly (copy before unmap) and pad probes must be exception-proof.
+Third lesson: confirm BOTH username and password when taking over hardware.
+Fourth lesson (added at lab-exit pull, 2026-08-13): pulled evidence found a
+sender bug (F1: `% 30 < n` NameError preventing rtp_ts advancement) and an
+operational RTX python mismatch (F2). Full machine snapshots + logs are in
+`docs/evidence/2026-08-13-lab-pull/` with manifest README.
+================================================================================

@@ -1,0 +1,16 @@
+[RTX] UDP local 0.0.0.0:36604
+[RTX] STUN public 14.139.108.62:36604
+[RTX] broker connecting ws://127.0.0.1:8765/ws?role=rtx&session=mcqueen-latency-1786455002
+[RTX] broker connected
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] announcing UDP candidate 14.139.108.62:36604
+[RTX] peer UDP candidate 152.58.45.79:42723
+[RTX] direct UDP responder active
+[RTX] peer UDP candidate 152.58.45.79:42723

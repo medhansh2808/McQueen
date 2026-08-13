@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/var/tmp/mcqueen-junior/gst_rtx_rtp_receiver.py", line 35, in <module>
+    import websocket
+ModuleNotFoundError: No module named 'websocket'

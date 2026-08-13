@@ -4,6 +4,80 @@ Append chronologically. Newest at the bottom.
 
 ---
 
+## 2026-08-13 — Final home-readiness audit + run script (user asked "super sure?")
+
+- Re-verified every item needed for home debug + GitHub update (file-by-file):
+  WAN code (fixed sender 5377eccc…, receiver = RTX md5-identical), 78-file evidence
+  pull, recordings 22M, all preflight docs, direct-UDP proof code. All present.
+- Found + pulled 3 more Jetson artifacts: `/tmp/gst_jetson_rtp_wan.py` (the EXACT
+  buggy 584-line sender, md5 ecd09a69 = pre-fix laptop copy — smoking gun for the
+  NameError flood), install_jetson_static.sh, preflight_jetson_webrtc.sh, preflight.sh.
+- RTX check: outputs/ + wandb/ empty (nothing unique); ~/logs has old policy_server
+  logs (Jul 30, not part of WAN work). RTX venv python `import websocket` OK.
+- Git: origin/jetson-nano is 2 commits behind (cf8ac2c + 3038cbc — agent contract
+  + trigger phrases, committed earlier, never pushed). Everything up to 5cc716c
+  already on origin. "Update GitHub at home" = commit the untracked WAN code +
+  evidence + push those 2 pending commits. Fully doable from home, no hardware.
+- GAP FOUND + FIXED: no run script existed for the NEW RTP transport (only the
+  WebRTC-era run_direct_wan_test.sh). Created `tools/realtime/run_rtp_wan_test.sh`
+  (chmod +x, bash -n OK): auto-detects RTX IP (wired→wifi), starts broker +
+  cloudflared, deploys the FIXED sender to Jetson + receiver to RTX, starts
+  receiver with the venv python (F2), starts sender, waits 35s, reports stage-
+  by-stage result. Encodes lessons F1/F2/F3. To run tomorrow: real terminal,
+  `./tools/realtime/run_rtp_wan_test.sh` (interactive passwords).
+- Helper deleted again after final sweep.
+
+---
+
+## 2026-08-13 — Lab exit: full Jetson + RTX pull to laptop (user "get all the stuff")
+
+**Mode**: LAB (user at lab, leaving for home). Explicit authorization to pull
+all code + logs + recordings from both machines and update repo state.
+
+**What happened**
+- Startup protocol: `agent_startup_check.sh` 35 PASS; git clean except 5 untracked
+  WAN-pipeline files + context folder; HEAD `cf8ac2c`.
+- Verified reachability: Jetson `sravjti@192.168.55.1` (USB, 2ms), RTX
+  `junior@192.168.0.132` (wired, 5ms) + `.179` (wifi). Passwords user-provided
+  (Jetson + RTX passwords REDACTED from git — user supplies them interactively); used
+  transient SSH_ASKPASS helper (error-log
+  workaround #1), helper DELETED after use.
+- Pulled (tar-over-SSH, timestamps preserved) into `docs/evidence/2026-08-13-lab-pull/`:
+  Jetson home WAN scripts/logs/pids + `/tmp/mcq_sender_probe_errors.log`;
+  RTX `/var/tmp/mcqueen-junior/` receiver scripts, broker.py, cloudflared state,
+  ALL 15 `gst_rtx_rtp_receiver_lab*.log` runs. Recordings into
+  `data/lab_pull_20260813/` (jetson_spool 2 sessions, rtx_raw 7.2M).
+- Machine state at pull: Jetson mcqueen-edge.service inactive+enabled, camera
+  present, kernel 4.9.253; RTX broker + cloudflared RUNNING
+  (URL disposition-cabinets-mariah-glad.trycloudflare.com).
+
+**What was tested / found (home-debug gold)**
+- **F1 (critical, FIXED)**: laptop sender `tools/realtime/gst_jetson_rtp_wan.py`
+  line 414 `if self.sent_pkts % 30 < n:` — `n` undefined. Probe-error log =
+  22,209 identical NameError lines. Exception fires BEFORE rtp_ts increment, so
+  rtp_ts never advances -> all frames sent with ts=0 -> rtph264depay merges to
+  1 AU (matches frames_rx=0 symptom). Fixed to `% 30 == 0` (matches deployed
+  sender). py_compile + test_rtp_association.py PASS.
+- **F2**: RTX lab16 log = `ModuleNotFoundError: websocket` — receiver started
+  with system python; must use gst-webrtc-venv python.
+- **F3**: lab15 (4.6MB, 4m27s) shows depay stuck "waiting for start" with FU-A
+  S=1/E=0 + AUD (NAL 9) packets — the orphan pattern the new sender's AUD-drop
+  + manual packetization fix. lab15 ran the OLDER NVENC-era sender.
+- **F4**: deployed Jetson sender (17:25, 411 lines, v4l2src/NVENC) is OLDER
+  than laptop copy (19:20, 584 lines, cv2+x264). RTX deployed receiver md5
+  IDENTICAL to laptop copy.
+- Unit tests: `test_rtp_association.py` PASS (5 frames exact order); all three
+  realtime scripts py_compile OK.
+
+**Git state**: branch jetson-nano, HEAD `cf8ac2c`; worktree now has untracked
+WAN files + evidence pull + data pull (gitignored `data/`). Nothing committed.
+
+**What remains (home)**: diff/deploy fixed sender next lab; start RTX receiver
+with venv python; re-run full loop and confirm SENT-throttle prints + rtp_ts
+advances. Recordings pulled for offline analysis.
+
+---
+
 ## 2026-08-13 — Session trigger phrases updated (user instruction)
 
 - Replaced the single backup phrase "per AGENTS.md, start session" with two mode-signaling

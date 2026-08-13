@@ -27,7 +27,11 @@ CAMERA → JETSON NANO → low-latency transport / WebRTC → RTX 4090 → auton
   decode→CUDA dummy action proven only on the local lab route.
 
 ## Current working mode
-- **Home / software-validation mode** (laptop). Lab hardware-verification mode is not active.
+- **Leaving lab → HOME mode** (software-validation, laptop-only). Lab-exit pull COMPLETE
+  (2026-08-13): all Jetson + RTX WAN code/logs/recordings mirrored to laptop
+  (`docs/evidence/2026-08-13-lab-pull/` + `data/lab_pull_20260813/`).
+- Sender bug F1 (`% 30 < n` NameError freezing rtp_ts) FIXED on laptop copy; needs
+  redeploy at next lab. RTX receiver must run with gst-webrtc-venv python (F2).
 - User rule: NO unattended Jetson/RTX access. Every Jetson/RTX command requires explicit
   human authorization (human enters passwords). Do not damage hardware.
 

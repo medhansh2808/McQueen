@@ -1,0 +1,82 @@
+[JETSON] connecting broker ws://192.168.0.124:8765/ws?role=jetson&session=mcqueen
+[JETSON] broker connected
+[JETSON] pipeline codec=h264 1280x720@30 bitrate=2500000
+[JETSON] RTP -> webrtc linked on sink_0
+Opening in BLOCKING MODE 
+Opening in BLOCKING MODE 
+[JETSON] pipeline PLAYING result=<enum GST_STATE_CHANGE_SUCCESS of type Gst.StateChangeReturn>
+NvMMLiteOpen : Block : BlockType = 277 
+NVMEDIA: Reading vendor.tegra.display-size : status: 6 
+NvMMLiteBlockCreate : Block : BlockType = 277 
+NvMMLiteOpen : Block : BlockType = 4 
+===== NVMEDIA: NVENC =====
+NvMMLiteBlockCreate : Block : BlockType = 4 
+H264: Profile = 66, Level = 0 
+[JETSON] negotiation needed -> creating offer
+0:00:00.545649687 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:2202:_create_sdp_task:<webrtc> creating offer sdp with options (NULL)
+0:00:00.553914278 10494     0x1046ce80 INFO               dtlsagent gstdtlsagent.c:126:_gst_dtls_init_openssl: initializing openssl 1010100f
+0:00:01.050149633 10494     0x1046ce80 DEBUG                dtlsdec gstdtlsdec.c:595:get_agent_by_pem: no agent with generated cert found, creating new
+0:00:01.050750590 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:1021:bio_method_new: BIO: new
+0:00:01.050805071 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> connection created: role=server buf=((nil):0/0) 10110|0 before SSL initialization
+0:00:01.051591607 10494     0x1046ce80 DEBUG                dtlsdec gstdtlsdec.c:599:get_agent_by_pem:<GstDtlsAgent@0x7f7c01d0d0> using agent with generated cert
+0:00:01.051946514 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:1021:bio_method_new: BIO: new
+0:00:01.051981411 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x7f7c0332f0> connection created: role=server buf=((nil):0/0) 10110|0 before SSL initialization
+0:00:01.053094781 10494     0x1046ce80 DEBUG            dtlssrtpenc gstdtlssrtpenc.c:329:gst_dtls_srtp_enc_request_new_pad:<dtlssrtpenc0> pad requested
+0:00:01.053409374 10494     0x1046ce80 LOG              dtlssrtpenc gstdtlssrtpenc.c:347:gst_dtls_srtp_enc_request_new_pad:<dtlssrtpenc0> added rtp sink pad
+0:00:01.053460678 10494     0x1046ce80 DEBUG            dtlssrtpenc gstdtlssrtpenc.c:329:gst_dtls_srtp_enc_request_new_pad:<dtlssrtpenc0> pad requested
+0:00:01.053717874 10494     0x1046ce80 LOG              dtlssrtpenc gstdtlssrtpenc.c:362:gst_dtls_srtp_enc_request_new_pad:<dtlssrtpenc0> added rtcp sink pad
+0:00:01.053966997 10494     0x1046ce80 DEBUG            dtlssrtpenc gstdtlssrtpenc.c:329:gst_dtls_srtp_enc_request_new_pad:<dtlssrtpenc1> pad requested
+0:00:01.054246381 10494     0x1046ce80 LOG              dtlssrtpenc gstdtlssrtpenc.c:362:gst_dtls_srtp_enc_request_new_pad:<dtlssrtpenc1> added rtcp sink pad
+[JETSON] offer sent
+0:00:01.064103523 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:2795:_set_description_task:<webrtc> Attempting to set local offer in the stable state
+0:00:01.078748477 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:974:_update_ice_gathering_state_task:<webrtc> ICE gathering state change from new(0) to complete(2)
+[JETSON] answer applied
+[JETSON] add ICE mline=0 candidate:5b59327d9f76c76e934674aa72b5f39e 1 udp 2130706431 192.168.0.124 45234 
+[JETSON] add ICE mline=0 candidate:1cc5ebea44bfc87567bf6717940937ba 1 udp 2130706431 192.168.0.132 51158 
+[JETSON] add ICE mline=0 candidate:971bcd2bccff33e4f67a6835f85c03fe 1 udp 2130706431 10.27.100.101 43774 
+[JETSON] add ICE mline=0 candidate:ccf58fa0bb8e6d3436eaab81ab32f783 1 udp 2130706431 10.140.40.101 50303 
+0:00:01.093489163 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:2795:_set_description_task:<webrtc> Attempting to set remote answer in the have-local-offer state
+0:00:01.093925010 10494     0x1046ce80 DEBUG                dtlsdec gstdtlsdec.c:658:gst_dtls_dec_fetch_connection: fetching 'rtp_0_3893696507' from connection table, size is 2
+0:00:01.094115850 10494     0x1046ce80 DEBUG                dtlsenc gstdtlsenc.c:378:src_activate_mode:<dtlsenc0> src pad activating in push mode
+0:00:01.094304658 10494     0x1046ce80 DEBUG                dtlsenc gstdtlsenc.c:330:gst_dtls_enc_change_state:<dtlsenc0> starting connection rtp_0_3893696507
+0:00:01.094351691 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> initial state set: role=server buf=((nil):0/0) 10110|0 before SSL initialization
+0:00:01.094381119 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> poll: before handshake: role=server buf=((nil):0/0) 10110|0 before SSL initialization
+0:00:01.094536489 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:1013:bio_method_ctrl:<GstDtlsConnection@0x105a1f90> BIO: unhandled ctrl, 6
+0:00:01.094569615 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:939:bio_method_read:<GstDtlsConnection@0x105a1f90> BIO: EOF
+0:00:01.094599928 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> poll: after handshake: role=server buf=((nil):0/0) 1010010|0 before SSL initialization
+0:00:01.094616752 10494     0x1046ce80 DEBUG         dtlsconnection gstdtlsconnection.c:759:openssl_poll:<GstDtlsConnection@0x105a1f90> do_handshake encountered BIO error
+0:00:01.094641388 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:794:openssl_poll:<GstDtlsConnection@0x105a1f90> SSL syscall error: errno 0: Success
+0:00:01.094667691 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> first poll done: role=server buf=((nil):0/0) 1010010|0 before SSL initialization
+0:00:01.094918741 10494     0x1046ce80 DEBUG                dtlsdec gstdtlsdec.c:658:gst_dtls_dec_fetch_connection: fetching 'rtcp_0_3633121866' from connection table, size is 1
+0:00:01.095041088 10494     0x1046ce80 DEBUG                dtlsenc gstdtlsenc.c:378:src_activate_mode:<dtlsenc1> src pad activating in push mode
+0:00:01.095163801 10494     0x1046ce80 DEBUG                dtlsenc gstdtlsenc.c:330:gst_dtls_enc_change_state:<dtlsenc1> starting connection rtcp_0_3633121866
+0:00:01.095200625 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x7f7c0332f0> initial state set: role=server buf=((nil):0/0) 10110|0 before SSL initialization
+0:00:01.095228178 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x7f7c0332f0> poll: before handshake: role=server buf=((nil):0/0) 10110|0 before SSL initialization
+0:00:01.095321618 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:1013:bio_method_ctrl:<GstDtlsConnection@0x7f7c0332f0> BIO: unhandled ctrl, 6
+0:00:01.095346619 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:939:bio_method_read:<GstDtlsConnection@0x7f7c0332f0> BIO: EOF
+0:00:01.095373807 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x7f7c0332f0> poll: after handshake: role=server buf=((nil):0/0) 1010010|0 before SSL initialization
+0:00:01.095389225 10494     0x1046ce80 DEBUG         dtlsconnection gstdtlsconnection.c:759:openssl_poll:<GstDtlsConnection@0x7f7c0332f0> do_handshake encountered BIO error
+0:00:01.095411100 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:794:openssl_poll:<GstDtlsConnection@0x7f7c0332f0> SSL syscall error: errno 0: Success
+0:00:01.095437247 10494     0x1046ce80 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x7f7c0332f0> first poll done: role=server buf=((nil):0/0) 1010010|0 before SSL initialization
+0:00:01.095602565 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:2334:_connect_input_stream:<webrtc:sink_0> linking input stream 0
+0:00:01.096557387 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:974:_update_ice_gathering_state_task:<webrtc> ICE gathering state change from complete(2) to gathering(1)
+0:00:01.096632494 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:1009:_update_ice_connection_state_task:<webrtc> ICE connection state change from new(0) to checking(1)
+0:00:01.096671714 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:1044:_update_peer_connection_state_task:<webrtc> Peer connection state change from new(0) to connecting(1)
+0:00:01.213457114 10494   0x7f7c070de0 LOG            dtlssrtpdemux gstdtlssrtpdemux.c:123:sink_chain:<dtlssrtpdemux0> pushing dtls packet
+0:00:01.213511022 10494   0x7f7c070de0 DEBUG                dtlsdec gstdtlsdec.c:548:sink_chain:<dtlsdec0> received buffer from rtp_0_3893696507 with length 169
+0:00:01.213552117 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> process start: role=server buf=(0x7f4c0090c0:0/169) 1010010|0 before SSL initialization
+0:00:01.213590972 10494   0x7f7c070de0 DEBUG         dtlsconnection gstdtlsconnection.c:959:bio_method_read:<GstDtlsConnection@0x105a1f90> reading 169/169 bytes 169 at offset 0, output buff size is 16717
+0:00:01.213722904 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:908:bio_method_write:<GstDtlsConnection@0x105a1f90> BIO: writing 15
+0:00:01.213759207 10494   0x7f7c070de0 DEBUG                dtlsenc gstdtlsenc.c:558:on_send_data:<dtlsenc0> sending data from rtp_0_3893696507 with length 15
+0:00:01.213799833 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:1004:bio_method_ctrl:<GstDtlsConnection@0x105a1f90> BIO: flushing
+0:00:01.213832543 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> process after read: role=server buf=((nil):169/169) 10010|14 error
+0:00:01.213863012 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> poll: before handshake: role=server buf=((nil):169/169) 10010|14 error
+0:00:01.213894732 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> poll: after handshake: role=server buf=((nil):169/169) 10010|14 error
+0:00:01.213914733 10494   0x7f7c070de0 DEBUG         dtlsconnection gstdtlsconnection.c:759:openssl_poll:<GstDtlsConnection@0x105a1f90> do_handshake encountered BIO error
+0:00:01.213942754 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:794:openssl_poll:<GstDtlsConnection@0x105a1f90> SSL syscall error: errno 0: Success
+0:00:01.213973432 10494   0x7f7c070de0 LOG           dtlsconnection gstdtlsconnection.c:630:log_state:<GstDtlsConnection@0x105a1f90> process after poll: role=server buf=((nil):169/169) 10010|14 error
+0:00:01.213994423 10494   0x7f7c070de0 DEBUG         dtlsconnection gstdtlsconnection.c:552:gst_dtls_connection_process:<GstDtlsConnection@0x105a1f90> read result: -1
+0:00:01.278654696 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:974:_update_ice_gathering_state_task:<webrtc> ICE gathering state change from gathering(1) to complete(2)
+0:00:01.588796987 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:1009:_update_ice_connection_state_task:<webrtc> ICE connection state change from checking(1) to connected(2)
+0:00:01.588852666 10494     0x1046ce80 INFO               webrtcbin gstwebrtcbin.c:1044:_update_peer_connection_state_task:<webrtc> Peer connection state change from connecting(1) to new(0)
+0:00:01.588977409 10494   0x7f7c093770 DEBUG         dtlsconnection gstdtlsconnection.c:422:gst_dtls_connection_check_timeout_locked:<GstDtlsConnection@0x105a1f90> no timeout set
