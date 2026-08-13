@@ -33,8 +33,13 @@ CAMERA → JETSON NANO → low-latency transport / WebRTC → RTX 4090 → auton
 
 ## Session-start protocol (DECISION 007 — mandatory)
 At every new session open: (1) run `.mcqueen/agent_startup_check.sh`; (2) read AGENTS.md +
-`.mcqueen/` state files; (3) `git status`; (4) then work. User backup phrase:
-"per AGENTS.md, start session".
+`.mcqueen/` state files; (3) `git status`; (4) then work.
+
+User trigger phrases (one is included at the start of every session — triggers the protocol
+AND sets the working mode):
+- "im at home" → HOME mode (software-validation, laptop-only, no hardware claims).
+- "im at lab" → LAB mode (hardware-verification, Jetson/RTX available, remote work begins
+  with per-command human authorization).
 
 ## Key constraints (see AGENTS.md for full contract)
 - No fabrication; use VERIFIED / PARTIALLY VERIFIED / UNVERIFIED / BLOCKED / FAILED / UNKNOWN.

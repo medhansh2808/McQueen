@@ -11,7 +11,12 @@ Freebuff cannot auto-load AGENTS.md, so the agent MUST self-trigger at every ses
 3. Inspect `git status`.
 4. Only then plan/do work.
 
-User backup phrase (if the agent did not self-trigger): "per AGENTS.md, start session".
+User trigger phrases (user includes one at the start of every session — they signal the
+start of the startup protocol AND set the working mode):
+- **"im at home"** → HOME mode: software-validation mode, laptop-only work, no hardware
+  claims, no Jetson/RTX access.
+- **"im at lab"** → LAB mode: hardware-verification mode, Jetson/RTX available, remote work
+  begins (each remote command still requires explicit human authorization).
 
 Binding rules = AGENTS.md + `.mcqueen/` ONLY (DECISION 008). The local folder
 `context stuff for understanding the mcqueen project/` is reference material, not binding.

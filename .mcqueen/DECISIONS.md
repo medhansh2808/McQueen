@@ -110,12 +110,30 @@ Never silently overwrite historical decisions — append and mark superseded.
 - **QUESTION**: How is a fresh Freebuff session guaranteed to follow the guidelines, given
   Freebuff cannot auto-load AGENTS.md?
 - **EVIDENCE**: Freebuff discovery (SESSION_LOG) — no native project-instructions mechanism.
-  User answered "Both".
+  User answered "Both". Later superseded the backup phrase (see below).
 - **DECISION**: Every new session starts by running `.mcqueen/agent_startup_check.sh` and
   reading AGENTS.md + `.mcqueen/` state files before any work; user may also open sessions with
-  the phrase "per AGENTS.md, start session" as a backup.
+  trigger phrases as a backup.
 - **WHY**: Robustness — two independent triggers.
 - **CONSEQUENCES**: Startup protocol is mandatory at session open; recorded in HANDOFF.md.
+- **STATUS**: SUPERSEDED (phrase updated by DECISION 009)
+
+---
+
+## DECISION 009 — Session trigger phrases: "im at home" / "im at lab"
+
+- **DATE**: 2026-08-13
+- **QUESTION**: Which phrase(s) does the user use to start a session?
+- **EVIDENCE**: User instruction — replace the single phrase with two: "im at home" and
+  "im at lab"; one of them will be at the start of every session (even in big prompts).
+- **DECISION**: The trigger phrases are "im at home" (HOME mode: software-validation,
+  laptop-only, no hardware claims, no Jetson/RTX access) and "im at lab" (LAB mode:
+  hardware-verification, Jetson/RTX available, remote work begins with per-command human
+  authorization). Both also trigger the mandatory startup protocol.
+- **WHY**: The phrase doubles as a working-mode switch, matching the project's
+  home-vs-lab proof separation.
+- **CONSEQUENCES**: Sessions without either phrase still self-trigger via the startup protocol;
+  the phrases add explicit mode signaling.
 - **STATUS**: ACCEPTED
 
 ---

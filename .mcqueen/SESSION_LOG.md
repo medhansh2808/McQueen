@@ -4,6 +4,16 @@ Append chronologically. Newest at the bottom.
 
 ---
 
+## 2026-08-13 — Session trigger phrases updated (user instruction)
+
+- Replaced the single backup phrase "per AGENTS.md, start session" with two mode-signaling
+  trigger phrases (DECISION 009): "im at home" (HOME mode — software-validation, laptop-only)
+  and "im at lab" (LAB mode — hardware-verification, Jetson/RTX work with per-command
+  authorization). Both trigger the mandatory startup protocol. Updated HANDOFF.md,
+  AGENT_STATE.md, DECISIONS.md; committed locally.
+
+---
+
 ## 2026-08-13 — Re-verification pass (Freebuff, user requested rerun from step 6)
 
 **Re-ran all verification fresh. Results identical to first pass:**
