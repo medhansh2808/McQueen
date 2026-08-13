@@ -51,13 +51,12 @@ capture_mono_ns` on Jetson clock; newest-frame-wins; benchmark-v2 reports stages
 (SIGNALING_P2P … FULL_LOOP_LATENCY).
 
 ## Current Git state
-Branch `jetson-nano`, HEAD `cf8ac2c` (trigger-phrase commit). Remote:
-github.com/medhansh2808/McQueen.git. Untracked (NOT committed): WAN pipeline
-files `tools/realtime/{gst_jetson_rtp_wan.py, gst_rtx_rtp_receiver.py,
-appsrc_rtp_ts_test.py, test_rtp_association.py}`, evidence pull
-`docs/evidence/2026-08-13-lab-pull/` + `2026-08-13-wan-pipeline-errors.txt`,
-`context stuff for understanding the mcqueen project/` (local context dumps).
-User rule: update GitHub only when hardware works — commit timing is user's call.
+Branch `jetson-nano`, HEAD == origin/jetson-nano == `6698d41` (ALL 2026-08-13 work
+committed AND pushed: WAN RTP transport code, lab-exit evidence pull, agent system,
+edge-test/preflight/runbook fixes). Remote: github.com/medhansh2808/McQueen.git.
+Only untracked item: `context stuff for understanding the mcqueen project/` (reference
+material, intentionally not committed). DECISION 012: nightly home sync of committed
+work to GitHub is user-sanctioned; state files (DECISION 011) must ALWAYS be current.
 
 ## Important machines / paths
 - Laptop repo: `/home/kartik/McQueenWork/McQueen`

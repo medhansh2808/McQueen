@@ -29,7 +29,16 @@ Each entry: question, why it matters, who/what can resolve it, status.
   gst-launch isolation debug.
 - **Resolve**: Next lab session: deploy fixed sender, start receiver with gst-webrtc-venv python,
   run full loop, check `SENT pkts` throttle prints + `rtp_ts` + `frames_rx`.
-- **Status**: UNVERIFIED (blocked until next lab).
+- **Status**: PARTIALLY VERIFIED (2026-08-13 home debug): code-level ALL prior failure
+  mechanisms are fixed + unit-tested offline (test_rtp_packetization 6/6). Also: the
+  cv2+x264 chain already flowed ~12 min on the Jetson (22,209 AUs), so #19's NVENC stall is
+  not in this chain. Remaining: hardware proof tomorrow via run_rtp_wan_test.sh.
+
+## Q8 — Old sender's marker-every-packet `(96 << 1)` bug — resolved?
+- **Question**: lab13/14/15 showed frames_rx climbing with zero decoded frames — marker on every
+  packet. Was that bug in the deployed sender?
+- **Resolve**: RESOLVED 2026-08-13 home debug — yes; new sender sets marker only on the last
+  packet (unit-tested). No action needed beyond tomorrow's hardware proof.
 
 ## Q3 — Where did the broker/tunnel actually run on 2026-08-11?
 - **Question**: Host of broker.py + cloudflared during the proof.
@@ -58,6 +67,10 @@ Each entry: question, why it matters, who/what can resolve it, status.
 - **Resolve**: RESOLVED 2026-08-13 — user chose "Commit now": committed locally (no push).
   Push still deferred per user rule (GitHub updates only when hardware works).
 - **Status**: RESOLVED (local commit done; push pending future lab milestone)
+
+## Q6 — RESOLVED (2026-08-13 audit): bootstrap + WAN code + evidence all committed AND pushed
+- Everything through `6698d41` is on GitHub (origin == local). User confirmed the push was
+  intentional (DECISION 012: nightly home sync sanctioned).
 
 ## Q7 — Per-machine Freebuff reachability
 - **Question**: Is this laptop the machine that goes to the lab (it is, per user), and can it

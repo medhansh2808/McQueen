@@ -73,8 +73,51 @@ Format: FACT | SOURCE | DATE/COMMIT | CONFIDENCE
 - FACT: Full machine snapshots + all 2026-08-13 lab receiver logs + recordings stored locally: `docs/evidence/2026-08-13-lab-pull/` (manifest README.md) and `data/lab_pull_20260813/` (gitignored).
   SOURCE: pull session (2026-08-13). CONFIDENCE: VERIFIED.
 
+## 2026-08-13 home debug of the WAN video path
+- FACT: lab13/14/15 receiver `frames_rx` counters counted UDP marker bits, NOT decoded
+  frames; decoded frames were ZERO (no `[RTX-GST] VIDEO` line in any lab receiver log).
+  Old deployed sender set the RTP marker bit on EVERY packet ((96<<1) PT-byte bug).
+  SOURCE: pulled logs gst_rtx_rtp_receiver_lab13/14/15.log (2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: lab15 "waiting for start" = FU-A fragments never completing + AUD NALs (type 9)
+  flushing rtph264depay mid-fragment. New sender drops type-9 NALs + completes FU-A.
+  SOURCE: lab15 log depay DEBUG lines (2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: #19 stall was the NVENC-era chain (deployed 411-line sender log ends at
+  `NVMEDIA: NVENC` init); new sender uses cv2 capture + x264 SW — chain removed by design.
+  SOURCE: gst_jetson_rtp_wan_lab.log + sender code comments + isolated appsrc test (2026-08-13).
+  CONFIDENCE: VERIFIED (code-level; hardware proof pending).
+- FACT: The new (584-line) sender's cv2→appsrc→x264→probe chain ALREADY ran continuously
+  on the Jetson for ~12 min at 19:20 (22,209 probe firings = 22,209 encoded AUs); its only
+  failure was F1 NameError freezing rtp_ts. So cv2+x264 does NOT stall on the Jetson.
+  SOURCE: mcq_sender_probe_errors.log (22,209 lines, 2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: Offline unit test tools/realtime/test_rtp_packetization.py — 6/6 PASS (AUD drop,
+  marker-only-on-last, FU-A S/E, per-frame ts 0/3000/6000, one-META-per-frame, non-VCL
+  hold, 100-frame F1 no-crash guard); test_rtp_association.py PASS; sender+receiver
+  py_compile OK; run_rtp_wan_test.sh bash -n OK; AST undefined-name scan clean.
+  SOURCE: runs (2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: Sender refactored (probe → _on_rtp_probe → handle_au → send_au) with NEW non-VCL
+  (SPS/PPS/SEI) hold-and-prepend hardening; run script resets probe-error log + reports
+  probe-error count / last rtp_ts / last frames_rx in RESULT.
+  SOURCE: tools/realtime/ (2026-08-13, uncommitted). CONFIDENCE: VERIFIED.
+
 ## Environment
 - FACT: Laptop Python 3.10.12 verified (`python3 --version`). Home env `mcqueen-laptop` used for temporal-core tests.
   SOURCE: command run (2026-08-13). CONFIDENCE: VERIFIED.
+
+## Git / repository (post-sync, 2026-08-13 evening)
+- FACT: ALL 2026-08-13 work is COMMITTED and PUSHED: branch `jetson-nano`, local HEAD ==
+  origin/jetson-nano == `6698d41` ("Fix stale edge tests, steering preflight, and runbook").
+  Includes WAN RTP transport code, full lab-exit evidence pull, agent system, and the
+  edge-test/preflight/runbook fixes.
+  SOURCE: `git log origin/jetson-nano`, `git status` (2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: Push was user-authorized/intentional (audit answer). DECISION 012: nightly home
+  sync of committed work is sanctioned.
+  SOURCE: user audit answers (2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: Only untracked item is `context stuff for understanding the mcqueen project/`
+  (reference material per DECISION 008, intentionally not committed).
+  SOURCE: `git status --short` (2026-08-13). CONFIDENCE: VERIFIED.
+- FACT: F1 fix (`% 30 == 0`) present in committed sender at `tools/realtime/gst_jetson_rtp_wan.py`
+  line 414; startup check 35/35 PASS; pytest = 18 passed + 1 env-blocked collector
+  (test_temporal_policy_v2.py needs torch in mcqueen-laptop env).
+  SOURCE: code_search + startup check + pytest (2026-08-13). CONFIDENCE: VERIFIED.
 - FACT: Jetson is Ubuntu 18.04-era with old Python/GStreamer/NVIDIA stacks — conservative dependency policy required.
   SOURCE: AGENTS.md section I (policy) + docs. CONFIDENCE: VERIFIED (policy).

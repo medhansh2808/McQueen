@@ -1,46 +1,43 @@
 # CURRENT_TASK.md — McQueen active task
 
-Updated: 2026-08-13 (lab exit pull)
+Updated: 2026-08-13 (home debug session, evening)
 
 ## OBJECTIVE
-Complete the lab-exit data pull (Jetson + RTX -> laptop) so the user can debug
-the WAN pipeline from home, with all evidence and repo state recorded.
+Offline-debug the WAN video path from home so that the next lab session is
+TEST-ONLY (no from-scratch debugging): resolve/understand sender #19 stall,
+confirm the F1 fix + venv receiver are sufficient for rtp_ts to advance and
+frames_rx > 0 (Q2b), and hand over a precise hardware test checklist.
 
 ## CURRENT STATE
-- DONE (2026-08-13 lab exit): full pull of Jetson home WAN scripts/logs/pids +
-  probe-error log + RTX `/var/tmp/mcqueen-junior/` receiver/broker/cloudflared
-  state + ALL lab receiver logs + recordings. Snapshots in
-  `docs/evidence/2026-08-13-lab-pull/` (manifest README.md); recordings in
-  `data/lab_pull_20260813/` (gitignored).
-- DONE: found + fixed sender bug F1 (`% 30 < n` NameError freezing rtp_ts);
-  documented F2 (receiver python mismatch), F3 (lab15 depay "waiting for start"
-  from old NVENC sender), F4 (deployed sender older than laptop copy).
-- Repo state: branch `jetson-nano`, HEAD `cf8ac2c`. Untracked: WAN pipeline
-  files (tools/realtime/*), evidence pull, context folder. NOT committed.
+- 2026-08-13 lab day fully audited; everything COMMITTED + PUSHED to GitHub
+  (HEAD = origin/jetson-nano = 6698d41, user-authorized).
+- HOME DEBUG COMPLETE (2026-08-13 evening): root causes of the lab failures pinned
+  from pulled evidence; sender hardened + refactored; new offline unit test suite
+  (test_rtp_packetization.py 6/6 PASS). Details:
+  docs/HOME_DEBUG_2026-08-13.md + SESSION_LOG + VERIFIED_FACTS.
+- FIXED (laptop copy): F1 `% 30 == 0` rtp_ts advance; marker-only-on-last-packet;
+  FU-A S/E complete; AUD drop; non-VCL (SPS/PPS) hold-and-prepend; #19 stall chain
+  removed by design (cv2 + x264 SW); probe-error log reset + result checks in
+  run_rtp_wan_test.sh.
+- BLOCKED (env): test_temporal_policy_v2.py needs torch (mcqueen-laptop env).
+- Test suite: pytest tests/ 7 passed + 11 mcqueen_ml passed (18 total, excluding
+  torch collector); startup check 35/35 PASS.
 
 ## BLOCKER
-- None for the pull. Home debugging of the WAN video path needs hardware
-  (next lab session) for end-to-end verification; offline analysis possible now.
+- Hardware proof pending: tomorrow's lab run of run_rtp_wan_test.sh. No hardware
+  at home; HOME mode forbids Jetson/RTX access anyway.
 
 ## NEXT ACTION
 (EXACTLY ONE)
-- Commit the WAN-pipeline code + evidence (user-authorized at home) OR continue
-  offline analysis of `docs/evidence/2026-08-13-lab-pull/` logs; then next lab
-  session: deploy fixed sender + venv receiver and confirm rtp_ts advances
-  (OPEN_QUESTIONS Q2b).
+- Tomorrow at lab (TEST-ONLY): `./tools/realtime/run_rtp_wan_test.sh` in a real
+  terminal. Green = NAT punch + RTX decoded frames + control return +
+  FULL_LOOP_LATENCY + 0 errors + 0 probe errors. Then record latency, log the
+  result in evidence/, and update these state files.
 
-## ACCEPTANCE CRITERIA
-- All deployed machine state is mirrored locally (code, logs, pids, recordings). DONE.
-- Sender bug F1 fixed on laptop copy, compiles, unit test passes. DONE.
-- Evidence doc `2026-08-13-wan-pipeline-errors.txt` updated with findings #20/#21. DONE.
-- All `.mcqueen/` state files updated (SESSION_LOG, VERIFIED_FACTS, OPEN_QUESTIONS,
-  HANDOFF, AGENT_STATE, DECISIONS). DONE.
-- Transient askpass helper deleted. DONE.
-
-## TEST PLAN
-1. `python3 tools/realtime/test_rtp_association.py` — PASS (run).
-2. `python3 -m py_compile tools/realtime/*.py` — PASS (run).
-3. Startup check + self-audit re-run before ending session.
+## ACCEPTANCE CRITERIA (tomorrow)
+- run_rtp_wan_test.sh green end-to-end; FULL_LOOP_LATENCY logged.
+- If not green: diagnose per docs/HOME_DEBUG_2026-08-13.md section 4 watch list.
+- Evidence + state files updated after the lab run.
 
 ## STATUS
-COMPLETE (lab-exit pull; home debug + next-lab redeploy pending)
+COMPLETE (home debug) — pending hardware verification tomorrow

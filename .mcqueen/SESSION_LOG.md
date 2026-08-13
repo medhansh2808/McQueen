@@ -4,6 +4,82 @@ Append chronologically. Newest at the bottom.
 
 ---
 
+## 2026-08-13 — Full-lab-day audit + state refresh + debug kickoff (user "im at home… complete audit of today's day… don't solve problems just list" then "debug it all rn")
+
+**Mode**: HOME. User asked for a complete audit of the 2026-08-13 lab day, then
+(gfter answering audit questions) authorized full offline debugging so tomorrow's
+lab is hardware-test-only.
+
+**Audit findings (delivered to user, full detail in chat)**
+- Day timeline: 15:20 agent bootstrap commit, 15:27 trigger-phrase commit, afternoon
+  lab WAN work (WebRTC dead on Jetson → NAT-punched raw RTP transport built),
+  20:02–20:05 lab-exit pull, 20:20 run_rtp_wan_test.sh, 20:27 WAN code+evidence
+  commit, 20:32 edge-test/preflight/runbook fixes commit, then PUSH to GitHub.
+- KEY DISCOVERY: everything is COMMITTED AND PUSHED — origin/jetson-nano == local
+  HEAD `6698d41`. The `.mcqueen/` files still described the pre-push state.
+- Problem ledger (21 error-log entries + F1–F6): WebRTC srflx (workaround: raw RTP),
+  SSH/ARP/pid/username friction (resolved), sender bugs #9/#16/F1 (fixed), #19 stall
+  (OPEN), F2 venv receiver (resolved), F3/F4/F5 (documented, redeploy pending),
+  4 pre-existing repo issues → 3 fixed in 6698d41, 1 still env-blocked (torch).
+- Verified current state: startup check 35/35 PASS; pytest 18 passed / 1 env-blocked;
+  F1 fix present at line 414; only untracked item = context folder (intentional).
+
+**User answers to audit questions (binding)**
+- GitHub push was INTENTIONAL — evidence stays in repo.
+- Next goal: flawless <100ms pipeline — debug everything tonight offline.
+- NEW MANDATE (DECISION 011): `.mcqueen/` state files must ALWAYS be updated at
+  session end, flawlessly. GitHub can be synced at home each night.
+- Next lab hardware: camera yes, drivetrain no.
+
+**Actions taken this session**
+- Refreshed AGENT_STATE.md + CURRENT_TASK.md for home-debug mode; recorded
+  DECISION 011; resolved OPEN_QUESTIONS Q6 (push done); updated HANDOFF git state;
+  added VERIFIED_FACTS for the push. (This entry + final refresh at session end.)
+- Started offline debugging of the WAN video path (sender #19 stall + Q2b) — see
+  results in the next SESSION_LOG entry / CURRENT_TASK + DECISIONS.
+
+---
+
+## 2026-08-13 — Home debug of WAN video path: root causes pinned, fixes + tests done
+
+**Mode**: HOME. User: "debug it all rn so tomorrow morning we just test on hardware".
+
+**Root-cause findings (from pulled evidence, code-level):**
+- lab13/14/15 receiver `frames_rx` counters counted UDP MARKER bits, NOT decoded
+  frames (old sender set marker on EVERY packet via `(96 << 1)` PT-byte bug;
+  decoded frames were zero — no `[RTX-GST] VIDEO` line anywhere).
+- lab15 "waiting for start": FU-A fragments never completing + AUD NALs (type 9)
+  flushing the depay mid-fragment. New sender drops AUD + completes FU-A.
+- #19 stall = NVENC-era chain (v4l2src/NVDEC/NVENC, log ends at NVENC init); new
+  sender uses cv2 (proven) + x264 SW (isolated test: x264 flows, NVENC stalls).
+- The NEW sender's cv2→appsrc→x264→probe chain ALREADY ran ~12 min on the Jetson
+  (22,209 probe firings at 19:20); only failure was F1 NameError freezing rtp_ts.
+
+**Code changes (laptop copies, tools/realtime/):**
+- Refactor (zero behavior change): probe → _on_rtp_probe (map) → handle_au (frame
+  logic) → send_au (packetization) — pure path now unit-testable offline.
+- NEW hardening: non-VCL AUs (SPS/PPS/SEI as separate buffers) held + prepended to
+  the next VCL AU → exactly ONE capture entry + ONE rtp_ts step per video frame
+  (protects exact frame_id association contract).
+- run_rtp_wan_test.sh: resets /tmp/mcq_sender_probe_errors.log at deploy; RESULT
+  now prints probe-error count + last SENT (rtp_ts) + last VIDEO (frames_rx) lines.
+- NEW offline unit test tools/realtime/test_rtp_packetization.py (6 tests: AUD
+  drop, marker-only-on-last, FU-A S/E bits, per-frame ts, one-META-per-frame,
+  non-VCL hold, 100-frame F1 no-crash guard).
+
+**Verified:** test_rtp_packetization 6/6 PASS; test_rtp_association PASS; py_compile
+OK; bash -n OK; AST undefined-name scan clean (all flags false positives, verified
+line-by-line); pytest tests/ 7 passed; startup check 35/35 PASS.
+
+**Artifacts:** docs/HOME_DEBUG_2026-08-13.md = full findings + tomorrow's checklist.
+
+**Remaining unknowns (hardware-only):** end-to-end latency with new sender; x264 CPU
+headroom at 640x480@30; cv2 cadence; SPS/PPS buffer layout (hardening covers both).
+
+**Next action:** tomorrow at lab — `./tools/realtime/run_rtp_wan_test.sh` in a real
+terminal; expect green + FULL_LOOP_LATENCY line. This is a TEST-ONLY session.
+
+
 ## 2026-08-13 — Final home-readiness audit + run script (user asked "super sure?")
 
 - Re-verified every item needed for home debug + GitHub update (file-by-file):

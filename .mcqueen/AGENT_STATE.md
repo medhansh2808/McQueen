@@ -1,6 +1,6 @@
 # AGENT_STATE.md — McQueen agent durable state
 
-Updated: 2026-08-13 (bootstrap)
+Updated: 2026-08-13 (home debug session, after GitHub sync)
 
 ## Identity
 - Agent: McQueen coding/repository engineering agent (contract: `AGENTS.md` at repo root).
@@ -27,11 +27,23 @@ CAMERA → JETSON NANO → low-latency transport / WebRTC → RTX 4090 → auton
   decode→CUDA dummy action proven only on the local lab route.
 
 ## Current working mode
-- **Leaving lab → HOME mode** (software-validation, laptop-only). Lab-exit pull COMPLETE
+- **HOME debug mode** (software-validation, laptop-only). Lab-exit pull COMPLETE
   (2026-08-13): all Jetson + RTX WAN code/logs/recordings mirrored to laptop
   (`docs/evidence/2026-08-13-lab-pull/` + `data/lab_pull_20260813/`).
-- Sender bug F1 (`% 30 < n` NameError freezing rtp_ts) FIXED on laptop copy; needs
-  redeploy at next lab. RTX receiver must run with gst-webrtc-venv python (F2).
+- Git: ALL WAN code + evidence + agent system COMMITTED and PUSHED (HEAD =
+  origin/jetson-nano = `6698d41`, 2026-08-13 20:32). User confirmed the push was
+  intentional (audit answer 2026-08-13).
+- USER MANDATE (DECISION 011): `.mcqueen/` state files must be updated at every
+  session end, flawlessly, always current. GitHub sync can happen at home each night.
+- Current goal: offline-debug the WAN video path (sender #19 stall, Q2b rtp_ts/
+  frames_rx) so tomorrow's lab is TEST-ONLY, no from-scratch debugging.
+- HOME DEBUG COMPLETE (2026-08-13): all prior failure mechanisms pinned from
+  evidence + fixed + unit-tested offline (test_rtp_packetization 6/6; see
+  docs/HOME_DEBUG_2026-08-13.md). Tomorrow's lab = TEST-ONLY:
+  `./tools/realtime/run_rtp_wan_test.sh`.
+- Sender bug F1 (`% 30 < n` NameError freezing rtp_ts) FIXED on laptop copy
+  (committed `6698d41`); needs redeploy at next lab. RTX receiver must run with
+  gst-webrtc-venv python (F2).
 - User rule: NO unattended Jetson/RTX access. Every Jetson/RTX command requires explicit
   human authorization (human enters passwords). Do not damage hardware.
 
