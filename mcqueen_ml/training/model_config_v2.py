@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 
 SUPPORTED_BACKBONES = (
+    "tiny",            # TinyVisualBackbone — smoke/latency stand-in, not production
     "ppgeo_resnet34",
     "drive_jepa_vit",
 )

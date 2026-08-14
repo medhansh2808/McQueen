@@ -126,7 +126,16 @@ class Sender(object):
         self.rtp_seq = 0
         self.rtp_ssrc = 0x4D515545  # "MQUE"
         self.rtp_ts = 0
-        self.rtp_ts_step = 90000 // FPS  # 3000 ticks per frame @ 90kHz
+        # --max-fps throttling (default 30 = send every captured frame, exactly
+        # the original path). rtp_ts_step must match the SENT rate (90kHz/fps)
+        # so the receiver's jitter-buffer clock math stays honest. Throttling
+        # is TIME-based (push at most one frame per frame_ns) so ANY target fps
+        # is achievable from the 30 fps camera (frame-skip integer steps could
+        # only do 30/N, e.g. 20 was silently 15).
+        self.max_fps = int(getattr(args, "max_fps", 30) or 30)
+        self.rtp_ts_step = 90000 // self.max_fps
+        self.frame_ns = int(1e9 / self.max_fps)   # min gap + PTS step per SENT frame
+        self._last_push_ns = 0
         self.rtp_mtu = 1200
 
         # Frame metadata queue: (frame_id, capture_mono_ns) pushed by the cv2
@@ -139,6 +148,8 @@ class Sender(object):
         self.ctrl_count = 0
         self.sent_pkts = 0
         self.sent_meta = 0
+        self.sent_bytes = 0      # Fix 3: measured achieved send rate
+        self.started = time.monotonic()
 
         self.cap = None
 
@@ -246,14 +257,22 @@ class Sender(object):
                 self.latency_ms.append((now - capture) / 1000000.0)
 
             if self.ctrl_count % 10 == 0:
+                # Rolling full-loop latency (Jetson clock): receive_mono_ns -
+                # capture_mono_ns, live every 10 controls — so the run shows
+                # the latency number without needing a graceful shutdown (the
+                # script never sends EOS).
+                vals = sorted(self.latency_ms)
+                p50 = vals[len(vals) // 2] if vals else 0.0
+                p95 = vals[min(len(vals) - 1, int(len(vals) * 0.95))] if vals else 0.0
                 print(
                     "[JETSON-CAM] CTRL_RX n={} frame={} servo={:.1f} pwm={} "
-                    "infer={:.2f}ms".format(
+                    "infer={:.2f}ms LAT_p50={:.1f}ms LAT_p95={:.1f}ms".format(
                         self.ctrl_count,
                         msg.get("frame_id"),
                         float(msg.get("servo_angle_deg", 0.0)),
                         int(msg.get("motor_pwm", 0)),
                         float(msg.get("infer_ms", 0.0)),
+                        p50, p95,
                     ),
                     flush=True,
                 )
@@ -287,6 +306,21 @@ class Sender(object):
                 time.sleep(0.05)
                 continue
 
+            # --max-fps throttling: TIME-based, ONLY when a lower rate is
+            # requested. Default 30 fps = NO gate = push every captured frame
+            # (the exact original path — a 33.3 ms gate would skip jittery
+            # camera frames and silently drop below 30). Lower fps: push at
+            # most once per frame_ns, the rest are read-and-dropped. Skipped
+            # frames get NO capture_q entry / NO frame_id increment, keeping
+            # META 1:1 with sent frames. NOTE: dropping can only reach 30/N
+            # rates from a 30 fps camera (e.g. 20 is not achievable — 15 or
+            # 30 only); 20 needs a camera rate change, not frame dropping.
+            if self.max_fps < 30:
+                now_ns = mono_ns()
+                if now_ns - self._last_push_ns < self.frame_ns:
+                    continue
+                self._last_push_ns = now_ns
+
             # Stamp capture time on THIS machine's monotonic clock immediately
             # after the read — this is the true capture moment.
             capture = mono_ns()
@@ -306,7 +340,7 @@ class Sender(object):
                     # buffers with PTS in the past are dropped by the pipeline
                     # clock (proven by appsrc_test2.py on the Jetson).
                     buf.pts = pts
-                    buf.duration = FRAME_NS
+                    buf.duration = self.frame_ns
                     ret = self.appsrc.emit("push-buffer", buf)
                     if self.frame_id % 30 == 0:
                         print(
@@ -317,7 +351,7 @@ class Sender(object):
                         )
                 except Exception as exc:
                     print("[JETSON-CAM] appsrc push error {!r}".format(exc), flush=True)
-            pts += FRAME_NS
+            pts += self.frame_ns
             self.frame_id += 1
 
         if self.cap is not None:
@@ -378,6 +412,7 @@ class Sender(object):
             try:
                 self.sock.sendto(META_PREFIX + meta, self.peer)
                 self.sent_meta += 1
+                self.sent_bytes += len(META_PREFIX) + len(meta)
             except Exception:
                 pass
 
@@ -412,10 +447,17 @@ class Sender(object):
                     fstart = fend
 
         if self.sent_pkts % 30 == 0:
+            # Fix 3: report the MEASURED achieved send rate (kbps) — the number
+            # that drives the --bitrate-kbps value for the next run (target =
+            # measured capacity with headroom; loss = sent-rx gap on the RTX
+            # log). Never a guess.
+            elapsed = max(time.monotonic() - self.started, 0.001)
+            achieved_kbps = self.sent_bytes * 8.0 / 1000.0 / elapsed
             print(
                 "[JETSON-CAM] SENT pkts={} meta={} rtp_ts={} au_bytes={} "
-                "peer={}:{}".format(
+                "achieved={:.0f}kbps peer={}:{}".format(
                     self.sent_pkts, self.sent_meta, ts, len(au),
+                    achieved_kbps,
                     self.peer[0] if self.peer else "?",
                     self.peer[1] if self.peer else "?",
                 ),
@@ -442,6 +484,7 @@ class Sender(object):
         try:
             self.sock.sendto(header + payload, self.peer)
             self.sent_pkts += 1
+            self.sent_bytes += len(header) + len(payload)
         except Exception:
             pass
         self.rtp_seq += 1
@@ -490,15 +533,22 @@ class Sender(object):
             "caps=video/x-raw,format=BGR,width={},height={},framerate={}/1 ! "
             "videoconvert ! "
             "video/x-raw,format=I420 ! "
-            "x264enc tune=zerolatency bitrate=2500 speed-preset=ultrafast "
+            "x264enc tune=zerolatency bitrate={} speed-preset=ultrafast "
             "key-int-max=30 ! "
             "h264parse name=parse config-interval=-1 ! "
             "video/x-h264,stream-format=byte-stream,alignment=au ! "
             "fakesink"
-        ).format(WIDTH, HEIGHT, FPS)
+        ).format(WIDTH, HEIGHT, FPS, self.args.bitrate_kbps)
 
-        print("[JETSON-CAM] pipeline: cv2 640x480@30 -> appsrc -> x264 (SW) "
-              "-> manual RTP packetization -> punched UDP (no ICE)", flush=True)
+        print("[JETSON-CAM] pipeline: cv2 640x480@{} -> appsrc -> x264 (SW) "
+              "-> manual RTP packetization -> punched UDP (no ICE)".format(
+                  self.max_fps), flush=True)
+        # Fix 3: bitrate comes from measurement (--bitrate-kbps), not a guess.
+        # The default 2500 exists ONLY so the unmodified run script keeps
+        # working; the operator sets it from the measured achieved/loss values
+        # of the previous run.
+        print("[JETSON-CAM] bitrate={} kbps (Fix 3: from measurement, not guess)".format(
+            self.args.bitrate_kbps), flush=True)
 
         self.pipeline = Gst.parse_launch(pipe_desc)
         if self.pipeline is None:
@@ -576,6 +626,14 @@ def main():
     p.add_argument("--device", required=True)
     p.add_argument("--stun-host", default="stun.cloudflare.com")
     p.add_argument("--stun-port", type=int, default=3478)
+    # Fix 3: bitrate from measurement, not a hardcoded guess. Default 2500 is a
+    # compatibility fallback so the unmodified run script keeps working; set it
+    # from the measured achieved send rate / loss of the previous run.
+    p.add_argument("--bitrate-kbps", type=int, default=2500,
+                   help="x264 bitrate in kbps — set from measured WAN throughput/loss")
+    p.add_argument("--max-fps", type=int, default=30,
+                   help="send every Nth captured frame so the sent rate ≈ this fps "
+                        "(default 30 = send every frame, original behavior)")
     args = p.parse_args()
     Sender(args).run()
 
