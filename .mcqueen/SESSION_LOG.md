@@ -1,6 +1,386 @@
 # SESSION_LOG.md — McQueen session log
 
-Append chronologically. Newest at the bottom.
+Append chronologically. Newest at the top.
+
+---
+
+## 2026-08-14 — Session 2f: evidence filed to laptop, machines verified clean (user heading home, "get everything we could need at home")
+
+**Mode**: LAB (user at lab, authorized SSH for read-only sweep + pulls). User: pull EVERYTHING
+potentially needed at home (GitHub update + debugging).
+
+- **Machine sweep (read-only, 21:38–21:50):** Jetson CLEAN — no sender/probe procs
+  (only intentional `mcqueen_discovery.py`), no bundles/pids/pycache/old logs; `/tmp` holds
+  punch tools (natprobe/punch_peer/rtp_loopback_test — kept by design) + today's logs.
+  RTX CLEAN of junk — ~/logs empty, keep-list intact, no McQueen procs. **ViReL train.py is
+  BACK: PID 575347 (started 20:17, 90% GPU / 20.4 GiB VRAM)** — untouchable (DECISION 014).
+  ~/Downloads + home = junior's own stuff, untouched.
+- **Evidence filed** → `docs/evidence/2026-08-14/wan-loop-measured/` (14 files + REPORT.md):
+  Jetson sender logs ×2 + 5× mcq_rtt probes, RTX receiver/broker/cloudflared logs + url,
+  2× meta.csv (jitter25 + save_test frame timestamps). REPORT numbers (from logs):
+  FULL_LOOP_LATENCY n≈48.6k **p50 287.1 / p95 504.0 ms** (30 fps @ 150 kbps, 25 ms jitter,
+  Jetson clock); **CONTROL_RETURN proven at scale — CTRL_RX n=48,650** (was inconclusive);
+  EXACT_FRAME_MATCH 52,095 ok / 3,287 miss (~94 %); RTX_INFERENCE ~0.08 ms; VIDEO_FRAMES
+  57.6k @ 25.4 fps; save path p50 0.96 / p95 1.32 ms, 52,100 saved, 0 dropped.
+- **Deployed-vs-repo md5:** sender/receiver/inference_rtx/broker byte-IDENTICAL to laptop
+  repo copies. **Jetson clone `tools/realtime/kachow_probe.py` is STALE (Aug 13 copy) —
+  deploy repo version before the live Q1 probe.**
+- **Recordings:** raw JPEGs NOT pulled (gitignored, numbers already extracted; 709 MB
+  partial pull deleted); RTX keeps recordings on disk. Only meta.csv files pulled.
+- **State file corrections applied** (AGENT_STATE, OPEN_QUESTIONS Q10, ERROR_LOG): ViReL
+  train.py returned (PID 575347) — "GPU free" claims were stale; Plan A proven GPU-independent.
+- No deletions on machines, no .mcqueen conflicts (other AI's last write 21:41, then quiet),
+  no commit (DECISION 013). User left for home.
+
+---
+
+## 2026-08-14 — LAB session 2e: wrap-up — everything stopped, tasks deferred to tomorrow
+
+**Mode**: LAB (user heading home, ~10 min). Decisions locked:
+- **Broker removal + <100 ms diagnostics: BOTH DEFERRED TO TOMORROW.** User: "we will do
+  both of those tasks tomorrow".
+- **At-home rule (BINDING, user mandate):** even at home, ANY code/script changes (incl.
+  fixing F7/F8/F9 in run_rtp_wan_test.sh) MUST be proposed to the user and wait for their
+  explicit approval. Nothing gets changed at home without asking first.
+- **GitHub:** NO push today. Error log + state files ride with tomorrow's hardware-verified
+  commit (DECISION 013).
+- **Procs stopped (precise PID kills, no pkill):** Jetson sender (20156/20155) killed +
+  verified no sender proc; RTX receiver (581633) + broker (180532) + cloudflared (180818)
+  all killed + verified RTX_ALL_STOPPED. Recordings stay on disk
+  (recordings/save_test_201750/ + jitter25_204850/).
+- **Tomorrow (verify-first)**: broker removal (code needs user approval at home first, then
+  live verify) + diagnostics (control-only RTT probe via punch_peer.py, 320×240 run) +
+  evidence filing + kachow_probe (Q1) + first hardware-verified commit (incl.
+  docs/ERROR_LOG_2026-08-14.md; reconcile origin `57561db`).
+- Honest confidence note delivered: pipeline itself proven (hours, ~0% loss, all errors
+  root-caused in ERROR_LOG); the ONLY known repeat-risk is F7/F8/F9 still in the run
+  script (per earlier order) — fix needs approval; documented manual-start fallback exists.
+
+---
+
+## 2026-08-14 — LAB session 2d: cleanup round 2 (full sweep) + error log + broker/estimates
+
+**Mode**: LAB. User: "why are there still so many files on the jetson", asked for the final
+setup verdict, <100 ms suggestions, broker status, and an error log file.
+
+**Cleanup round 2 — FULL SWEEP (user-approved, option 1: junk AND old logs):**
+- Jetson ~: removed 6 git bundles + tar (~50 MB), McQueen_files/, 12 old logs (Aug 11–13),
+  4 stale .pid files, old kachow_probe.py (pre-repo), __pycache__, tailscale tgz + sha256 +
+  websocket whl install artifacts. Home now = Desktop, examples.desktop, McQueen (clone),
+  safety_contract_250ms.py only.
+- Jetson /tmp: removed sync_calib.py + __pycache__. KEPT the manual-punch tools
+  natprobe.py / punch_peer.py / rtp_loopback_test.py (McQueen's own, from the kilobit
+  tests — punch_peer.py is the SSH-orchestrator hole-punch tool, directly relevant to
+  broker removal) + mcq_rtt_*.log (today's RTT-probe evidence) + working sender + logs.
+- RTX /var/tmp/mcqueen-junior: removed 15 old lab logs (lab2–16) + Aug 11–12 WAN logs
+  (finish_udp_rtx, finish_video_rtx, full_loop_bench_rtx, gst_rtx_lowlat, gst_rtx_receiver*,
+  leave_lab_rtx, rtx_peer, udp_latency_rtx, gst_rtx_probe, broker.log, cloudflared.log) +
+  sync_calib.py. Removed ~/gst_rtx_receiver_wan.pid, ~/mcqueen scratch, ~/logs policy_server
+  logs (all McQueen junk, all mirrored in docs/evidence where applicable).
+- Post-sweep verification: sender (Jetson PID 20156) + receiver (RTX PID 581633, 25 ms
+  jitter, saving) + broker + cloudflared ALL alive; broker health {"ok": true}; keep-list
+  intact (venv, clone, lerobot, mcqueen_ml, inference_rtx.py, cloudflared, recordings).
+  Broker session shows only "rtx" — the jetson ws died again (Q11), sender still flowing
+  on its current mapping; no action needed for this session's wrap-up.
+
+**Error log created**: `docs/ERROR_LOG_2026-08-14.md` — F1/F2/F7/F8/F9/F10/F11/F12,
+`drop-on-late` crash, cd-mistake restart, Q11 ws death, NAT re-point failure, NVDEC
+starvation, 10-fps + jitter-buffer findings, cleanup-gap note. User-approved for the next
+GitHub push.
+
+**Answers delivered**: verdict = 30 fps @ 150 kbps, 50 ms buffer, CPU path (loop p50 ~280 ms,
+wire-dominated); <100 ms plan = control-only RTT probe + 320×240 + pacing, honest caveat that
+the hotspot link may be the hard floor; broker = signaling-only (NOT in data path), manual
+peer exchange viable and kills Q11 failure class.
+
+**Estimates given (awaiting go/no-go)**: broker removal ~1.5–2.5 h full (code ~1 h home +
+live verify ~30–45 min lab; debugging buffer included); <100 ms diagnostics ~30–45 min.
+User asked for estimates BEFORE starting. Error log + state files updated; nothing committed.
+
+---
+
+## 2026-08-14 — LAB session 2c: approved 4-part plan COMPLETE (cleanup, save test, fps ladder+RTT, 25 ms jitter)
+
+**Mode**: LAB. User approved the 4-part plan (cleanup → save-latency test → fps ladder +
+RTT probe → 25 ms jitter buffer) and said implement in order. All 4 done, hardware-verified.
+
+**1. Cleanup (RTX + Jetson) — DONE, keep-list intact**
+- Removed only old setup files/tools/stale pids: old WAN scripts (direct_control_peer*,
+  rtx_peer*, udp_latency_*, gst_rtx_lowlat*, gst_rtx_receiver* old copies, rtx_full_loop_bench.py,
+  jetson old senders + pids), dead webrtc-venv/, __pycache__, stale broker/cloudflared .pid.
+  Old LOGS kept per user. Post-removal check: receiver/broker/cloudflared/sender all alive;
+  ~/McQueen clone + edge service + data + HF cache + current tools present → KEEPLIST_INTACT.
+
+**2. Save-latency test — DONE**
+- Receiver gained opt-in `--save-frames <dir>` (default OFF = current behavior unchanged):
+  JPEG every decoded frame + meta.csv (frame_id, capture_mono_ns, recv_mono_ns, save_mono_ns)
+  via async writer thread (bounded queue — disk never blocks control path). venv has cv2 4.11.
+- Run (30fps@150, ~3 min): recv→decode→save **p50 1.14 ms / p95 1.54 ms**; 5,277 saved vs
+  5,270 assoc_ok ≈ 100%, 0 dropped; completeness vs received 90.8% (lost-META frames not
+  saved by design); 161 MB in recordings/save_test_201750/.
+- Note: sender's tunnel ws died mid-test (Q11) → sender restarted fresh (known workaround).
+
+**3. FPS ladder + RTT probe — DONE, mystery SOLVED**
+- Back-to-back on the same network @150 kbps, Jetson pings 1.1.1.1 every second per run:
+  10 fps → loop **677 ms** (link RTT p50 46 / p95 73 ms — HEALTHY); 15 fps → **478 ms**
+  (two 15-fps-equivalent runs agreed 478/467 → reproducible); 30 fps → **277 ms**.
+- Verdict: NOT link variance — SPARSE TRAFFIC itself (jitter-buffer clock recovery + path/NAT
+  scheduling with one burst per 100 ms). True 20 fps impossible (30/N rates: 30/15/10).
+  **Winner: 30 fps.**
+- Sender `--max-fps` reworked to time-gate that ONLY applies when throttling; regression
+  caught+fixed: the gate had skipped jittery camera frames at default 30 (sent ~20 fps) —
+  default 30 now pushes every camera frame (original path), verified 31.3 fps sent.
+
+**4. 25 ms jitter buffer @ 30fps — DONE**
+- Receiver gained `--jitter-ms` (default 50 = unchanged). Run: loop **p50 281.9 ms /
+  p95 425.4 ms** — statistically identical to 50 ms (276.8/393) → jitter buffer was never
+  the latency driver; ~280 ms is wire/RTT. SAVED n=21,400, 0 dropped, recv2save p50 0.93 ms.
+- Finding: sender re-pointing to a new receiver port WITHOUT a fresh restart does NOT
+  re-establish the NAT path (CGNAT/campus mapping per-session) — receiver got 0 RTP until
+  the sender was restarted fresh (new public 152.58.29.56:48655). In-place re-point = dead.
+
+**Dropped (per user)**: absolute capture→save latency (needs Jetson↔RTX clock offset).
+sync_calib.py (NTP-style 4-timestamp offset over direct UDP, no broker) written + deployed
+but not run to completion — kept untracked in tools/realtime/. RTX-side recv→decode→save IS
+measured (~1 ms).
+
+**State**: sender (30fps@150) + receiver (25 ms jitter, saving to recordings/jitter25_204850)
++ broker + cloudflared still RUNNING. GPU free. Nothing committed (DECISION 013). State
+files updated to handoff grade.
+
+**Next (user green-light)**: evidence filing, kachow_probe (Q1), recording, FIRST
+hardware-verified commit (reconcile origin `57561db`), L1 real inference (approval only).
+
+---
+
+## 2026-08-14 — LAB session 2b: better network + measurement runs (10 fps vs 30 fps; kbit/loss/receipt metrics)
+
+**Mode**: LAB. User switched the phone to a better network and asked for the measurement
+rerun: kbit sent, frame/control efficiency+loss, 10 fps (not 30), receipt proof, recommendations.
+
+**Network change verified**: Jetson public 152.58.29.86 → 152.58.29.56 (new CGNAT). Same
+pipeline, 30 fps @ 400: **p50 391 → ~160 ms, p95 1.67 s → ~380 ms** — bottleneck was the link.
+
+**Code change (only one, least-disruptive per user)**: sender `--max-fps` flag; default 30 =
+byte-identical original path (frame_step 1 / rtp_ts_step 3000 / frame_ns 33.3 ms); 10 = every
+3rd captured frame (step 3 / 9000 / 100 ms), skipped frames get NO capture_q entry or frame_id
+(META stays 1:1 with sent frames). Verified: py_compile, packetization 5/5, pytest 18,
+10 fps pacing live (rtp_ts 14,724,000 = 1636×9000). No receiver changes.
+
+**Run 1 — 10 fps @ 150 kbps (2.5 min):** p50 462 ms / p95 679 ms. Frames ≈1,645 sent vs
+≈1,590 received (~96–97%; window overlapped prior stream tail — approximate). META loss ~1%.
+Controls 98.5%. EXACT_FRAME_MATCH 98.9%. achieved ~56–75 kbps.
+
+**Run 2 — 30 fps @ 150 kbps (2.5 min, drained baselines):** p50 224 ms / p95 368 ms.
+Frames 5,020 → 4,995 (**99.5%**), packets 21,260 → 21,000 (1.2%), META 5,019 → 4,987 (0.6%),
+controls 4,593 → 4,600 (~0%), EXACT_FRAME_MATCH 95.0%, CPU infer 0.04–0.14 ms, achieved
+169 kbps (incl. ~12% RTP header overhead).
+
+**FPS ANOMALY (unconfirmed)**: 10 fps latency WORSE than 30 fps at same bitrate — bandwidth no
+longer the constraint; likely jitter-buffer clock recovery with sparse traffic or link variance.
+Needs a repeated pair. Recommendations delivered: repeat pair, 25 ms jitter buffer (loss ~0 →
+margin), control-only RTT probe, per-leg timestamps, sender ws reconnect (Q11), 10-min
+stability run.
+
+**State**: GPU free; receiver PID 554982 + sender (30 fps @ 150) still running; nothing
+committed (DECISION 013); state files updated.
+
+---
+
+## 2026-08-14 — LAB session 2: fixes implemented on reset baseline → FULL LOOP FLAWLESS, latency measured (user "fix the server thing… gimme final loop latency number")
+
+**Mode**: LAB. User ordered: reset the loop-test files to GitHub state, apply ONLY the listed
+fixes (no Plan-A package), then run the loop latency test. Answer to Q2 (manual start) pre-\
+approved; broker KEPT ("keep broker (recommended)"); CPU decode approved ("yes, force CPU decode").
+
+**Reset + fixes (git checkout HEAD -- sender/receiver/run-script; then applied ONLY):**
+- Fix 1: receiver always pushes RTP into appsrc — never gates on `cur_meta`; lost META →
+  assoc_miss. Fix 2: rtpjitterbuffer latency=50 drop-on-latency=true (50 ms budget, no rtx).
+  Fix 3: sender --bitrate-kbps + achieved-kbps print. CPU path: avdec_h264 + CPU dummy infer.
+  Rolling FULL_LOOP_LATENCY (LAT_p50/LAT_p95) every 10 controls. Run script UNTOUCHED.
+- test_rtp_packetization.py adapted to the committed sender API (run via _on_rtp_probe with
+  real Gst.Buffer; non-VCL-hold test dropped — that behavior was reset away): 5/5 PASS +
+  association PASS + pytest 18 passed + py_compile/bash -n clean.
+
+**Committed-script run (as ordered — bug-watch):** F7 CONFIRMED (pkill -f self-kills remote
+shell in steps 6+7 → peers never start; step-8 "evidence" was STALE morning logs — identified,
+not misreported). F9 CONFIRMED (sudo fails without tty / hangs with tty). F8 NOT hit (URL file
+refreshed this morning). Bugs noted, NOT fixed (user order).
+
+**Manual start (user pre-approved) — two receiver crashes fixed on the way:**
+1. `drop-on-late` doesn't exist on RTX GStreamer 1.20.3 (removed in 1.20) → verified the live
+   property list → `drop-on-latency` (1.20's replacement).
+2. Agent mistake: restart command omitted `cd /var/tmp/mcqueen-junior` → python couldn't find
+   the script → died silently; stray log cleaned; restarted with cd.
+3. Broker finding: Jetson tunnel ws died (`[BROKER] ws error jetson No PONG received after
+   7.5 seconds` → disconnected) → sender has NO ws-reconnect → stayed blind to the receiver's
+   new public port → kept sending to a dead mapping. Sender restarted → fresh rendezvous;
+   receiver re-punch on PEER_CANDIDATE change VERIFIED working.
+
+**RESULT — FULL LOOP FLAWLESS, GPU free (ViReL train.py GONE — 0% util):**
+- SIGNALING_P2P ✓ (Jetson pub 152.58.29.86 ↔ RTX pub 14.139.108.62:60072); frames sustained;
+  EXACT_FRAME_MATCH assoc_ok≈5.7k / assoc_miss≈950 (~14% honest WAN loss — Fix 1 delivering);
+  CPU infer 0.13–0.2 ms; ctrl_sent ↔ CTRL_RX n≈1.8k; servo 90 / pwm 0.
+- Bitrate sweep (Fix 3 verified live: achieved 2495 / 719 / 380 kbps matched targets):
+  2500 → p50 709 ms / p95 2.5 s / 8.7 fps; 800 → 408 ms / 1.76 s / 12.3 fps;
+  400 → **p50 391 ms / p95 1.67 s / 14.1 fps (FINAL)**.
+- Not <100 ms: the phone-hotspot link loses ~55% of frames and adds ~390 ms RTT; 2026-08-11
+  proof (43 ms control-only RTT) shows the pipeline can do better on a good link. Sub-second
+  accepted by user.
+
+**Leftover McQueen test procs still running** (not stopped — user hasn't said): Jetson sender
+(python3 /tmp/gst_jetson_rtp_wan.py, --bitrate-kbps 400), RTX receiver PID 554981, broker +
+cloudflared. Camera held by sender.
+
+**Git**: nothing committed (DECISION 013). origin still 1 ahead (`57561db` AUDIT doc — reconcile
+at first commit).
+
+**Next**: user decides — evidence (capture_evidence.sh), kachow_probe (Q1), recording,
+first hardware-verified commit, L1 real inference (approval required).
+
+---
+
+## 2026-08-14 — LAB session: L0 transport PROVEN; GPU contention stalls clean numbers (user "im at lab")
+
+**Mode**: LAB. Goal: get the 100 ms loop test done. User provided SSH passwords (RTX + Jetson)
+and authorized the runs; transient askpass helper
+`/tmp/mcq_askpass.sh` created (delete after session; NEVER write passwords into repo files).
+
+**Preflight (VERIFIED)**: Jetson USB SSH ok, camera present, hotspot ON (wlan0 10.147.40.55),
+internet ok; RTX wired .132 ok (.179 dead), broker HEALTHY, venv python + cloudflared present;
+GPU 100% busy with `/home/junior/ViReL/Tasks/vlmgrpo` `python train.py` (PID 490867, ~18.6 GB
+VRAM) — inspected read-only (cwd, cmdline, exe, parent) → **NOT McQueen's, untouchable**.
+
+**Fixes found during runs (all in uncommitted run_rtp_wan_test.sh):**
+- F7: `pkill -f <script>` self-killed the remote shell (its cmdline contains the script name in
+the nohup line) → sender/receiver never started, stale log misread as failure. Fixed with
+ANCHORED patterns (`^python3 /tmp/gst_jetson_rtp_wan.py`, `^…/gst-webrtc-venv/bin/python
+gst_rtx_rtp_receiver.py`). PROVEN via SURVIVED test.
+- F8: stale `cloudflared.url` (2026-08-13 URL dead; running tunnel = new URL
+`unfortunately-wrestling-kim-traveller.trycloudflare.com`) → refreshed; tunnel verified live.
+- F9: Jetson sudo needs password (tty_tickets — cache doesn't cross PTYs) → step 7 sudo now
+conditional on service active + `sudo -n` + bounded `timeout 10 sudo`; never hangs.
+
+**L0 run 4 result (best)**: SIGNALING_P2P READY (Jetson pub 152.58.42.132 ↔ RTX
+14.139.108.62:48699); sender SENT pkts 12060+, rtp_ts 39000→3327000 (F1 fix CONFIRMED live);
+RTX frames_rx=16, assoc_ok=1 assoc_miss=0, ctrl_sent=1, infer_avg=169.75ms; 0 probe errors;
+0 GST errors. **Then stalled**: GPU-starved NVDEC ~1 fps → appsrc backpressure → UDP thread
+blocked → socket Recv-Q 216,192 B full → kernel dropped packets (12,000 sent, ~210 received).
+
+**Findings → approved fixes (NEXT session implements):**
+- F10 (BUG, approved): receiver `udp_loop` gates RTP→appsrc on `elif self.cur_meta is not None:`
+— META loss drops delivered RTP. Fix: always push RTP; association separate (loss → assoc_miss).
+- F11 (approved): NO rtpjitterbuffer in pipeline (`appsrc→rtph264depay→h264parse→decodebin→
+videoconvert→queue(1,leaky)→appsink`). Fix: bounded rtpjitterbuffer, latency ≤50 ms,
+drop-on-late, no retransmission.
+- F12 (approved): sender hardcodes `x264enc tune=zerolatency bitrate=2500 speed-preset=ultrafast`
+(line ~563) — bitrate is a GUESS. Fix: set bitrate from measurement.
+- Plan A APPROVED: force `avdec_h264` + CPU dummy inference on RTX → pipeline never touches
+GPU → ViReL irrelevant. User constraints (BINDING): jitter buffer latency never >50 ms; NO
+retransmission/rtx (late frames dropped); do NOT raise prediction_timeout_ms (250 stays); NO
+webrtcbin; do NOT chase NVENC (stalls on this Jetpack — fix bitrate/resolution instead).
+- CTRL_RX invisibility explained: Jetson logs CTRL_RX only every 10th control → 1 control =
+no log line. Control return path INCONCLUSIVE (needs sustained run).
+
+**Broker**: user asked whether broker/cloudflared can be dropped using manual peer exchange
+(each side learns the other's public IP:port; STUN on both sides; run script can read both
+PUBLIC lines over SSH — no literal copy-paste). PROPOSED — user has more to say NEXT session.
+
+**Leftover McQueen procs still running** (user: leave until decision): Jetson sender PID 11216,
+RTX receiver PID 518003, RTX broker + cloudflared.
+
+**Git**: local HEAD `6632913`; origin/jetson-nano ahead 1 (`57561db` "actaul audit", user web
+push, only docs/AUDIT_2026-08-13.md — reconcile at first commit). NOTHING committed (013).
+
+**Next**: user ends session, will open a new one and say "fix the server thing" → implement
+A1–A4 + broker decision → rerun L0 → document → evidence → first hardware-verified commit.
+
+---
+
+## 2026-08-14 — Home prep H1–H5 complete (user "im at home")
+
+**Mode**: HOME. Approved the home-prep plan (H1 broker/hygiene → H2 real-inference glue →
+H5 probe prep → H3 PPGeo ResNet-34 → H4 evidence automation) so the next lab is TEST-ONLY.
+
+**H1 — broker + machine hygiene (DONE)**
+- `tools/realtime/broker.py` created from `docs/evidence/2026-08-13-lab-pull/rtx/broker.py`
+  (py_compile OK); run_rtp_wan_test.sh step 1b now scp's the repo broker + checks
+  `$RTX_PY` (exit 10) and `$RTX_DIR/cloudflared` (exit 11 + download hint).
+- AGENTS.md §H machine-hygiene rule added; DECISIONS.md DECISION 014 (RTX = COMMON machine;
+  remove only McQueen junk; keep-list; per-item human approval for deletions).
+- DECISION 012 SUPERSEDED by DECISION 013 (hardware-verified commits/pushes only) earlier.
+
+**H2 — real-inference engine (DONE)**
+- `tools/realtime/inference_rtx.py`: InferenceEngine with newest-frame-wins 6-frame buffer,
+  exact frame_id/capture_mono_ns echo, safety clamps (servo 45–115, pwm −70..100),
+  numpy-only I420 decode, `_load_policy_classes` raises RuntimeError — no silent backbone
+  substitution. `gst_rtx_rtp_receiver.py` integrated (`--inference dummy|real`,
+  `_real_inference`/`_dummy_inference`, `meta=pred` echo, ENGINE stats in final report).
+  `model_config_v2.py` SUPPORTED_BACKBONES += "tiny". run script steps 5/6 deploy
+  inference_rtx.py + mcqueen_ml and set PYTHONPATH=$RTX_DIR.
+- `test_inference_rtx.py`: **18/18 PASS** (CPU + CUDA, numpy decode, frame identity, clamps,
+  newest-wins, config errors). Standalone CLI smoke: laptop GPU warmup 172 ms then steady
+  ~3–4 ms/forward (LAPTOP number, NOT the 4090).
+
+**H5 — kachow_probe label-path reporting (DONE)**
+- Probe now prints per-packet `pwm` via the recorder's exact `throttle_to_pwm` (motor_enabled
+  gating, clamp, ×255/1000) + final LABEL_PATH stats (throttle n/nonzero/min/max/distinct,
+  pwm n/forward/reverse/min/max, steering extremes) + verdict: exit 0 = control AND PWM path
+  proven, exit 3 = control OK but PWM unproven (drive forward AND reverse next time). PWM
+  math re-verified (1000→255, −1000→−255, 500→128, disabled→0).
+
+**H3 — PPGeo ResNet-34 adapter (DONE)**
+- Cloned official OpenDriveLab/PPGeo (read-only, /tmp/opencode/PPGeo). Verified released
+  "Visual Encoder (ResNet-34)" = `ResnetEncoder(34, num_input_images=1)` = PLAIN torchvision
+  resnet34, forward normalize=True → layer4 → pool → 512-dim.
+- Downloaded real checkpoint (87.3 MB, gdown; Google Drive id `1GAeLgT3Bd_koN9bRPDU1ksMpMlWfGXbE`,
+  BaiduYun backup `itqi`) to `~/Downloads/mcqueen_ppgeo/ppgeo_visual_encoder.pth`. Inspected:
+  dict {"state_dict": OrderedDict}, **218 keys, standard torchvision names, NO prefix**.
+- `mcqueen_ml/training/backbones.py` `PPGeoResNet34Backbone`: output_dim 512, internal
+  ImageNet normalization (matches PPGeo), strict load, `RuntimeError` when checkpoint missing
+  (no silent fallback — DECISION 015), lazy torchvision import. `test_backbones_ppgeo_resnet34.py`
+  **5/5 PASS** (incl. strict torchvision equivalence); full TemporalDrivingPolicy end-to-end
+  OK (2×6×3×224×224 → (2,2)).
+
+**H4 — evidence automation (DONE)**
+- `tools/realtime/capture_evidence.sh`: files milestone logs → `docs/evidence/<date>/<milestone>/`,
+  exit 2 on missing/empty sources, prints unmissable `LOGS FILED →` banner (smoke-tested).
+- `docs/evidence/MILESTONE_TEMPLATE.md`: n/p50/p95 per benchmark-v2 stage, stage-identity +
+  zero-sample rules, artifact inventory, verdict.
+- `tools/realtime/process_recording.sh`: validate_spool → convert_spool → capture_evidence;
+  failed validation BLOCKS conversion (never convert bad spools). bash -n + behavior smoke OK.
+
+**Verified (2026-08-14)**
+- System python3 pytest: `pytest tests/ mcqueen_ml/ --ignore=test_temporal_policy_v2.py
+  --ignore=test_backbones_ppgeo_resnet34.py` → **18 passed** (torch tests follow the existing
+  ignore convention).
+- mcqueen-laptop env unittest: temporal 3 + backbones 5 = **8 OK**; test_inference_rtx
+  standalone **18/18**. Env: Python 3.12.13, torch 2.11.0+cu128, CUDA True (gdown added).
+- All new/edited scripts py_compile / bash -n clean.
+
+**Git state**: branch jetson-nano, HEAD == origin == `6632913`. NOTHING committed/pushed
+(DECISION 013 — hardware-first). Pending files listed in CURRENT_TASK. User said they will
+end the session after prep; state files brought to handoff grade.
+
+**Next action**: TEST-ONLY lab — run_rtp_wan_test.sh green → capture_evidence + probe exit 0
++ real recording (process_recording.sh) → first hardware-verified commit (DECISION 013).
+
+**Post-session audit fixes (same day, user asked "are you sure… flawless")**
+- FOUND + FIXED: `kachow_probe.py` `self.results[result] += 1` had been dropped in the H5
+  edit — without it the probe ALWAYS reported "NO VALID KACHOW PACKETS SEEN" (exit 2) and Q1
+  could not be answered. Counter restored; also inlined `throttle_to_pwm` (removes recorder's
+  cv2/record_row import chain from the probe). SIMULATED PROBE: full phone session through
+  `_handle_packet` (hello → neutral-arm → fwd → rev → estop → re-neutral) → results counter,
+  throttle/pwm collection, and the exit-0 verdict path all proven; inline PWM math verified
+  byte-identical to recorder.throttle_to_pwm for the full input range; py_compile OK.
+- FOUND + FIXED: `agent_self_audit.py` reported the context system NOT healthy — CURRENT_TASK.md
+  was missing the required `## TEST PLAN` section. Section added (test-only lab sequence).
+- FOUND + FIXED: OPEN_QUESTIONS.md Q2 ("WAN server thing") had been accidentally deleted;
+  restored as PARTIALLY VERIFIED with the persistent-service residual.
+- FOUND + FIXED: SESSION_LOG header said "Newest at the bottom" but actual convention is
+  newest-at-top; header corrected. HANDOFF seniors-rule line removed (strict compliance).
+- Re-verified after fixes: agent_self_audit healthy; startup check 35/35; pytest 18 passed;
+  unittest 8 OK; test_inference_rtx 18/18.
 
 ---
 
@@ -230,6 +610,75 @@ Freebuff discovery recorded, both scripts executable.
 
 **Git state**
 - Clean except new untracked agent files (AGENTS.md, .mcqueen/*). NOT committed (per user rule).
+
+---
+
+## 2026-08-14 — Home session 3 (post-lab): GitHub restructure PLANNED, user updates GitHub later
+
+**Mode**: HOME. User is at home; the 2026-08-14 lab session is fully wrapped (see sections
+above). This session was PLANNING ONLY — zero GitHub changes, zero commits, zero pushes,
+zero machine access.
+
+**Arduino/ESP32 audit (Item 1):** verified repo has ZERO arduino/esp32 code references, BUT
+GitHub (jetson-nano branch) still contains old-hardware files:
+- `legacy/esp32/` (McQueenReverseFix + kachow_esp32_ap_v2, C firmware)
+- `legacy/uno_q_previous/` (Arduino sketch UnoQDrive.ino + MCU services + old teleop)
+- `legacy/oakd/` + `hardware/cad/oakdmount.stl` (OAK-D depth camera)
+- `legacy/laptop_logger/` + `legacy/dataset_logging/` (superseded laptop-in-loop logging)
+
+**Decisions made this session (user):**
+- Purge scope = ALL of the above (52 files total), branch-only. KEEP `servohorn.stl` +
+  `servomount.stl` + oakd… NO — user final word: remove oakd + laptop_logger + dataset_logging
+  + esp32 + uno_q_previous + oakdmount.stl. Keep `hardware/cad/servohorn.stl` +
+  `servomount.stl` + README (current servo hardware).
+- History IS the backup (user accepted git-history approach over a local backup folder;
+  tag `pre-purge-2026-08-14` will be created at commit time as the recovery point).
+- New BINDING RULE (added to AGENTS.md §J): GitHub updates must keep the repo simple,
+  functional, maximally reproducible.
+- Fresh-machine reproducibility = FUTURE TASK (honestly NOT true yet; full gap list in
+  CURRENT_TASK.md FUTURE WORK; est. 1–2 h laptop + lab verify).
+
+**Status:** full restructure plan recorded in CURRENT_TASK.md FUTURE WORK + AGENT_STATE +
+HANDOFF. User will update GitHub in a while (not now — "first we got some shit to do").
+NOTHING executed. Next: await user's GO for the restructure, or whatever task comes first.
+
+---
+
+## 2026-08-14 — Home session 4 (evening): finalized next-lab plan + audits cleaned
+
+**Mode**: HOME. PLANNING ONLY — no GitHub changes (user will do the GitHub update himself
+after this; restructure plan untouched), no machines, no code changes.
+
+**Day audit + error log brought to spec:**
+- `docs/AUDIT_2026-08-14.md` CREATED (was missing — only 08-13 audit existed). Format matches
+  AUDIT_2026-08-13.md: accomplishments, full problem table with fix statuses, current state,
+  still-open. **No timestamps.**
+- `docs/ERROR_LOG_2026-08-14.md` — was properly structured (F1–F12 + findings); removed the
+  clock times it contained (21:41, 20:17).
+- `docs/evidence/2026-08-14/wan-loop-measured/REPORT.md` — removed clock times (20:48–21:26,
+  21:00→21:26, 21:47–21:50); kept IP:port values (NOT timestamps).
+- **NEW BINDING RULE (AGENTS.md §C):** audits/error logs/evidence reports NEVER contain
+  clock timestamps. Dates (day identity) allowed; IP:port values are not timestamps.
+
+**Finalized next-lab scope (user decisions this session):**
+- **Transport/latency ONLY. No training, no real inference.** The 8 old demos
+  (`data/jetson_recordings/`, Aug 9–10) are NOT real driving data (user verdict) — no point
+  training on them.
+- **NO TRAINED POLICY EXISTS (verified):** find for *.pt/*.pth found only
+  `~/Downloads/mcqueen_ppgeo/ppgeo_visual_encoder.pth` (PPGeo encoder = feature extractor,
+  outputs features NOT actuator commands). Training must wait for a real recorded dataset.
+- **TRUE PATH RTT FIRST:** tomorrow's first diagnostic = Jetson pings the RTX's ACTUAL public
+  IP (today's 46 ms was to Cloudflare 1.1.1.1 — gap identified). Decisive: ≈46 ms → floor
+  ≈60 ms; 100+ ms → link is the wall.
+- **Queueing attacks:** 320×240 @ 150 kbps + packet pacing (only if the floor says worth it).
+- **Constants:** 30 fps, 50 ms jitter buffer (25 identical — keep margin), CPU decode/infer,
+  no retransmission, 250 ms timeout.
+- **REAL SPEC (user):** on real roads, camera→actuator as fast as possible. <100 ms was
+  aspirational, NOT a hard requirement. Ideal road link: Jio 5G (RTT ~10–30 ms → <100 ms
+  comfortably achievable); 4G borderline (~60 ms floor + queueing).
+
+**Git/GitHub:** nothing touched. Restructure plan (CURRENT_TASK FUTURE WORK + AGENT_STATE +
+HANDOFF) intact, awaiting user's own GitHub update.
 
 **Freebuff capability notes**
 - Native command-approval: Freebuff's terminal tool prompts the user for approval on

@@ -62,6 +62,12 @@ If sources conflict:
 
 ## C. NO FABRICATION
 
+**No-timestamps rule (binding, user mandate 2026-08-14):** day audits
+(`docs/AUDIT_*.md`), error logs (`docs/ERROR_LOG_*.md`), and milestone evidence reports
+(`docs/evidence/*/REPORT.md`) must NEVER contain clock timestamps (e.g. `21:41`, `20:17–21:26`).
+Describe ordering/sequence without clock times; dates (day identity) are allowed; IP:port
+values are NOT timestamps and stay.
+
 Never claim:
 - a service is running without evidence
 - a Jetson is reachable without testing/reported evidence
@@ -198,6 +204,16 @@ Before remote operations: discover, verify, inspect, then act.
 - Every Jetson/RTX command requires explicit human authorization (passwords are entered by the
   human; the agent never gets unattended access).
 
+**Machine hygiene rule (binding, DECISION 014):** the RTX is a COMMON machine — never touch,
+modify, or delete anything that is not verifiably McQueen's. Remove ONLY McQueen junk that is
+no longer useful (stale McQueen sender/receiver copies, old McQueen logs/pid files, outdated
+run scripts, superseded bundles once their content is repo-managed). The repo is the single
+source of truth for McQueen software: machines run deployed copies of repo files, never
+hand-edited leftovers. When in doubt whether something is McQueen's or useful — ask the human
+first, per item, before deleting anything. Keep-list (McQueen-owned, never remove): repo
+clone, gst-webrtc-venv, lerobot conda env, broker.py (repo-managed), cloudflared binary,
+McQueen data/checkpoints.
+
 ---
 
 ## I. DEPENDENCY DISCIPLINE
@@ -225,8 +241,29 @@ After changes: tests, `git diff`, `git status`.
 
 Do NOT automatically run: `git reset --hard`, `git clean -fd`, `git push`.
 
+**Hardware-first rule (binding, DECISION 013):** nothing is committed and nothing is pushed
+to GitHub unless the change has been successfully verified on hardware. Untested or failed
+work stays local — no exceptions, even for small fixes. Software-only changes (documentation,
+state files) ride along in the next hardware-verified commit; they are not committed or
+pushed separately from home.
+
 Do not commit generated files, secrets, credentials, caches, model weights, or datasets unless
 the repository explicitly requires them. Commit messages should describe the actual change.
+
+**GitHub simplicity rule (binding, user mandate 2026-08-14):** whenever updating GitHub, the
+goal is ALWAYS to keep the repository as simple and as functional as possible while maximizing
+reproducibility. This means: (1) remove superseded/dead code and old-hardware artifacts when
+found (branch-only purge; history is the backup — tag `pre-purge-2026-08-14` style recovery
+points where useful); (2) never add files that are not needed to replicate the current project
+on a fresh machine; (3) prefer one clear documented path to run the project over multiple
+ad-hoc variants; (4) keep the repo free of anything that isn't verifiably McQueen's.
+
+**Fresh-machine reproducibility (open task, user mandate 2026-08-14):** a stated future goal
+is that anyone with the same hardware + the GitHub link can reproduce the project on their
+own hardware very easily (ideally a simple command). This is NOT true yet — missing: a
+verified fresh-setup runbook (Jetson/RTX/laptop), pinned dependencies, F7/F8/F9 run-script
+fixes, documented checkpoint download + `MCQUEEN_PPGEO_CKPT`, cloudflared fetch, KACHOW app
+build-from-source. See CURRENT_TASK.md future-work list.
 
 ---
 
@@ -290,6 +327,13 @@ Do not rely on conversational memory alone. Durable project memory lives in repo
 These files must remain concise and useful. Do not duplicate the entire repository into them.
 Store facts, decisions, constraints, active work, and unresolved issues.
 
+**Handoff mandate (binding, DECISION 013):** at the end of EVERY session — no matter how
+small the task — the state files must be brought to handoff grade: a fresh agent with zero
+conversational memory must be able to read them and resume the project exactly where it was
+left (current verified state, pending work, blockers, exact NEXT ACTION, Git state). The
+state files are the project's master memory and the anti-hallucination record; keep them
+curated and precise, not verbose dumps.
+
 ---
 
 ## N. SESSION START
@@ -311,7 +355,7 @@ Do not assume previous conversational context is still accurate.
 
 ## O. SESSION END
 
-Before ending a substantial task, update:
+At the end of EVERY session — no matter how small the task — update:
 
     .mcqueen/AGENT_STATE.md
     .mcqueen/CURRENT_TASK.md
@@ -320,7 +364,9 @@ Before ending a substantial task, update:
     .mcqueen/OPEN_QUESTIONS.md
 
 Record: what changed, what was tested, exact test results, what remains, blockers, relevant
-files, Git state, and next recommended action.
+files, Git state, and next recommended action. Leave the files handoff-grade (see M): a
+fresh agent with no conversational memory must be able to start from exactly where this
+session left the project. Skipping this step for a small task is not allowed.
 
 ---
 

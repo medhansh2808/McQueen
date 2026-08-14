@@ -27,6 +27,7 @@ from __future__ import print_function
 import argparse
 import json
 import os
+import queue
 import socket
 import struct
 import threading
@@ -43,6 +44,9 @@ Gst.init(None)
 MAGIC_COOKIE = 0x2112A442
 META_PREFIX = b"META\t"
 CTRL_PREFIX = b"CTRL\t"
+
+# Decoded-frame geometry for the RTX-side save test (matches the Jetson sender).
+W, H = 640, 480
 
 
 def mono_ns():
@@ -120,6 +124,18 @@ class Receiver(object):
 
         self.started = time.monotonic()
         self.last_report = self.started
+
+        # Opt-in RTX-side frame saving (--save-frames DIR): decoded JPEG frames
+        # + meta.csv via an async writer so disk I/O never blocks the control
+        # path. Default None = current behavior, no saving, zero overhead.
+        self.save_dir = getattr(args, "save_frames", None)
+        self.save_queue = None
+        self.save_thread = None
+        self.save_csv = None
+        self.saves = 0
+        self.save_dropped = 0
+        self.save_ms = []
+        self.save_stop = threading.Event()
 
         # RTP timestamp bookkeeping for the current in-flight frame.
         self.cur_meta = None
@@ -236,12 +252,13 @@ class Receiver(object):
                     self.meta_rx += 1
                 except Exception:
                     pass
-            elif data.startswith(CTRL_PREFIX):
-                pass  # ACK path unused
-            elif self.cur_meta is not None:
-                # RTP packet for the frame announced by the last META.
-                if len(data) < 12:
-                    continue
+            elif len(data) >= 12 and (data[0] & 0xC0) == 0x80:
+                # RTP packet (version 2 header). Delivery is NEVER gated on META
+                # presence (Fix 1): a lost META datagram must not drop this
+                # frame's RTP packets. META is only association metadata; a
+                # frame that completes with cur_meta=None is counted as
+                # assoc_miss downstream (honest miss), never as a delivery
+                # block.
                 self.rtp_rx += 1
                 if self.rtp_rx % 30 == 0:
                     print(
@@ -255,13 +272,16 @@ class Receiver(object):
                 # Marker bit = last packet of this RTP frame.
                 if data[1] & 0x80:
                     with self.meta_lock:
+                        # May be None (lost META) — keep the 1:1 placeholder so
+                        # in-order pairing with decoded frames never drifts.
                         self.meta_q.append(self.cur_meta)
                         if len(self.meta_q) > 8:
                             self.meta_q = self.meta_q[-8:]
                     self.frames_rx += 1
                     self.cur_meta = None
                     self.cur_rtp_pts = None
-                # Feed RTP payload into appsrc (raw RTP packet).
+                # Feed RTP payload into appsrc (raw RTP packet) — always,
+                # regardless of association state.
                 if self.appsrc is not None:
                     buf = Gst.Buffer.new_allocate(None, len(data), None)
                     buf.fill(0, data)
@@ -270,11 +290,26 @@ class Receiver(object):
     # ---------- GStreamer -----------------------------------------------------
 
     def build(self):
+        # Fix 2: bounded jitter buffer. latency is the strict budget (50 ms
+        # by default; the 25 ms variant was tested 2026-08-14 — loss ~0 on
+        # the current link so a tighter buffer was tried for lower latency).
+        # drop-on-latency discards packets past their deadline instead of
+        # delaying the stream (GStreamer 1.20: drop-on-latency replaces the
+        # removed drop-on-late — verified live on the RTX venv, 1.20.3).
+        # NO retransmission/rtx: do-retransmission stays False by default
+        # (a late frame is useless — drop it).
+        jbuf = "rtpjitterbuffer latency={} drop-on-latency=true ! ".format(
+            getattr(self.args, "jitter_ms", 50))
         pipe_desc = (
             "appsrc name=src is-live=true format=time do-timestamp=true "
             "caps=application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000 ! "
+            + jbuf +
             "rtph264depay ! h264parse ! "
-            "decodebin ! "
+            # CPU decode (avdec_h264): this test must not depend on the GPU —
+            # the 4090 may be busy with other work (e.g. ViReL train.py), which
+            # starved NVDEC to ~1 fps and stalled the pipeline. 640x480@30 is
+            # trivial for the RTX CPU. Real GPU inference is a separate L1 step.
+            "avdec_h264 ! "
             "videoconvert ! "
             "video/x-raw,format=I420 ! "
             "queue max-size-buffers=1 leaky=downstream ! "
@@ -320,23 +355,31 @@ class Receiver(object):
 
         self.assoc_ok += 1
 
-        # RTX inference (CUDA dummy policy forward).
+        # Opt-in RTX-side frame saving: write the decoded JPEG (the exact frame
+        # the pipeline decoded) + CSV line, async. Only frames with a META (exact
+        # frame_id) are saved. If the bounded queue is full, SAVES are dropped
+        # (counted) — never frames, never delivery.
+        if self.save_dir is not None:
+            self._enqueue_save(sample, int(meta["frame_id"]),
+                               int(meta["capture_mono_ns"]), mono_ns())
+
+        # RTX inference — CPU dummy policy forward. This test runs the pipeline
+        # without touching the GPU (the 4090 may be 100% busy with other work,
+        # e.g. ViReL train.py, which starved the old CUDA dummy to ~1 fps and
+        # stalled the pipeline). Real GPU inference is a separate L1 step and
+        # runs only when the GPU is free and the user approves.
         infer_ms = None
         if self.torch is None:
             import torch
             self.torch = torch
             print(
-                "[RTX-GST] PYTORCH cuda={} device={}".format(
-                    torch.cuda.is_available(),
-                    torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
-                ),
+                "[RTX-GST] PYTORCH device=cpu (CPU dummy inference — no GPU contention)",
                 flush=True,
             )
         try:
             t0 = time.perf_counter()
-            x = self.torch.rand((1, 2048), device="cuda")
+            x = self.torch.rand((1, 2048), device="cpu")
             y = x.mean()
-            self.torch.cuda.synchronize()
             infer_ms = (time.perf_counter() - t0) * 1000.0
             with self.infer_lock:
                 self.infer_ms.append(infer_ms)
@@ -388,6 +431,107 @@ class Receiver(object):
 
         return Gst.FlowReturn.OK
 
+    # ---------- RTX-side frame saving (--save-frames, async writer) -----------
+
+    def _start_saving(self):
+        os.makedirs(self.save_dir, exist_ok=True)
+        self.save_csv = open(
+            os.path.join(self.save_dir, "meta.csv"), "a", buffering=1)
+        self.save_csv.write("frame_id,capture_mono_ns,recv_mono_ns,save_mono_ns\n")
+        self.save_queue = queue.Queue(maxsize=256)
+        self.saves = 0
+        self.save_dropped = 0
+        self.save_ms = []
+        self.save_stop = threading.Event()
+        t = threading.Thread(target=self._save_worker)
+        t.daemon = True
+        t.start()
+        self.save_thread = t
+        print("[RTX-GST] SAVE frames -> {} (JPEG + meta.csv, async writer)".format(
+            self.save_dir), flush=True)
+
+    def _enqueue_save(self, sample, frame_id, capture_mono_ns, recv_mono_ns):
+        try:
+            import cv2
+            import numpy as np
+            b = sample.get_buffer()
+            ok, m = b.map(Gst.MapFlags.READ)
+            if not ok:
+                return
+            try:
+                i420 = bytes(m.data)
+            finally:
+                b.unmap(m)
+            img = np.frombuffer(i420, dtype=np.uint8).reshape((H * 3 // 2, W))
+            bgr = cv2.cvtColor(img, cv2.COLOR_YUV2BGR_I420)
+            okc, enc = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            if not okc:
+                return
+            try:
+                self.save_queue.put_nowait(
+                    (enc.tobytes(), frame_id, capture_mono_ns, recv_mono_ns))
+            except queue.Full:
+                self.save_dropped += 1
+        except Exception as exc:
+            print("[RTX-GST] SAVE encode error {!r}".format(exc), flush=True)
+
+    def _save_worker(self):
+        while not self.save_stop.is_set():
+            try:
+                payload = self.save_queue.get(timeout=0.5)
+            except queue.Empty:
+                continue
+            if payload is None:
+                break
+            jpg, frame_id, capture_mono_ns, recv_mono_ns = payload
+            try:
+                with open(os.path.join(self.save_dir,
+                                       "frame_{}.jpg".format(frame_id)), "wb") as fh:
+                    fh.write(jpg)
+                save_mono_ns = mono_ns()
+                self.save_csv.write("{},{},{},{}\n".format(
+                    frame_id, capture_mono_ns, recv_mono_ns, save_mono_ns))
+                self.save_ms.append(save_mono_ns - recv_mono_ns)
+                if len(self.save_ms) > 500:
+                    self.save_ms = self.save_ms[-500:]
+                self.saves += 1
+                if self.saves % 100 == 0:
+                    tail = sorted(self.save_ms)
+                    p50 = tail[len(tail) // 2]
+                    p95 = tail[min(len(tail) - 1, int(len(tail) * 0.95))]
+                    print("[RTX-GST] SAVED n={} dropped={} recv2save_p50={:.2f}ms "
+                          "recv2save_p95={:.2f}ms".format(
+                              self.saves, self.save_dropped, p50 / 1e6, p95 / 1e6),
+                          flush=True)
+            except Exception as exc:
+                print("[RTX-GST] SAVE write error {!r}".format(exc), flush=True)
+
+    def _stop_saving(self):
+        if self.save_dir is None:
+            return
+        self.save_stop.set()
+        try:
+            self.save_queue.put_nowait(None)
+        except Exception:
+            pass
+        try:
+            if self.save_thread is not None:
+                self.save_thread.join(timeout=3)
+        except Exception:
+            pass
+        try:
+            self.save_csv.close()
+        except Exception:
+            pass
+        tail = sorted(self.save_ms)
+        if tail:
+            p50 = tail[len(tail) // 2]
+            p95 = tail[min(len(tail) - 1, int(len(tail) * 0.95))]
+            print("[RTX-GST] SAVE FINAL n={} dropped={} recv2save_p50={:.2f}ms "
+                  "p95={:.2f}ms".format(
+                      self.saves, self.save_dropped, p50 / 1e6, p95 / 1e6),
+                  flush=True)
+
     def run(self):
         t = threading.Thread(target=self._ws_loop)
         t.daemon = True
@@ -397,6 +541,8 @@ class Receiver(object):
         u.start()
 
         self.rendezvous()
+        if self.save_dir is not None:
+            self._start_saving()
         self.build()
 
         try:
@@ -410,6 +556,7 @@ class Receiver(object):
             except Exception:
                 pass
             self.sock.close()
+            self._stop_saving()
 
             with self.infer_lock:
                 infer_n = len(self.infer_ms)
@@ -431,6 +578,13 @@ def main():
     p.add_argument("--broker", required=True)
     p.add_argument("--stun-host", default="stun.cloudflare.com")
     p.add_argument("--stun-port", type=int, default=3478)
+    p.add_argument("--save-frames", default=None,
+                   help="RTX-side recording test: save decoded frames as JPEG + "
+                        "meta.csv (frame_id,capture_mono_ns,recv_mono_ns,save_mono_ns) "
+                        "into DIR via an async writer (default: no saving)")
+    p.add_argument("--jitter-ms", type=int, default=50,
+                   help="rtpjitterbuffer latency budget in ms (50 default; 25 tested "
+                        "2026-08-14 — never raise above 50 per user constraint)")
     args = p.parse_args()
     Receiver(args).run()
 
