@@ -27,9 +27,9 @@ RTX environment.
 
 ## Realtime transport direction
 
-- video: Jetson hardware H.264 -> WebRTC -> RTX
-- signaling: WebSocket/WSS broker
-- autonomous action return: direct UDP
+- video: Jetson hardware H.264 -> RTP -> direct UDP (peer-to-peer, STUN-punched)
+- signaling: broker only for the NAT punch / discovery stage
+- autonomous action return: direct UDP on the same punched path
 - full-loop association: exact `frame_id` + Jetson monotonic capture timestamp
 
 ## Steering contract
@@ -46,12 +46,9 @@ See `docs/dataset_schema_v2.md`.
 
 ## Project status
 
-Proof levels are intentionally separated:
-
-- `docs/HARDWARE_MILESTONES_2026-08-11.md` — only real lab hardware/network-interface proofs
-- `docs/HOME_VALIDATED_2026-08-12.md` — home software/runtime validation
-- `docs/PROJECT_STATUS_2026-08-12.md` — current state and unresolved work
-- `docs/NEXT_LAB_RUNBOOK.md` — next lab sequence
+Proof levels are intentionally separated; see the docs index (`docs/README.md`) for
+architecture, setup, model and benchmark documentation. Hardware-verified milestones and
+per-session evidence are maintained locally (not part of the public repo).
 
 ## Contributors
 

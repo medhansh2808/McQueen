@@ -62,4 +62,5 @@ when the drivetrain is reassembled; do not infer wiring from old UNO-Q setup not
 
 ## Next session
 
-Use `docs/NEXT_LAB_RUNBOOK.md` rather than legacy setup instructions.
+Run procedures live in `tools/realtime/` (sender/receiver/bench scripts); see
+`docs/full_loop_benchmark_v2.md` for the measurement contract.

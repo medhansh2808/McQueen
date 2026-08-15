@@ -1,7 +1,0 @@
-bitrate_kbps iteration frames_rx loss_pct assoc_loss_pct full_loop_ctrl_rx
-150 1 898 2.9 4.3 yes (LAT_p50=270.2ms p95=414.9ms)
-150 2 966 skew-artifact 4.0 yes
-300 1 944 skew-artifact 6.3 yes
-300 2 981 skew-artifact 6.1 yes
-400 1 975 skew-artifact 6.9 yes
-400 2 10687 0.0 5.7 yes (manual rerun; 30s window LAT_p50=279.3ms)

@@ -72,3 +72,17 @@ __pycache__/
 
 # Personal context folder (never part of the repo)
 context stuff for understanding the mcqueen project/
+
+# --- 2026-08-16 purge: keep these LOCAL only, never on GitHub ---
+.mcqueen/
+docs/AUDIT_*.md
+docs/ERROR_LOG_*.md
+docs/evidence/
+docs/HOME_DEBUG_*.md
+docs/HOME_VALIDATED_*.md
+docs/PROJECT_STATUS_*.md
+docs/HARDWARE_MILESTONES_*.md
+docs/REALTIME_INFERENCE_V0.md
+README_NEXT_LAB_BUNDLE.txt
+legacy/uno_q_previous/
+docs/NEXT_LAB_RUNBOOK.md
