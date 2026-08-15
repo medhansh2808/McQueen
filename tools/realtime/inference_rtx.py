@@ -103,22 +103,60 @@ def decode_i420_to_np(raw, width, height):
 
 
 class InferenceEngine(object):
-    """Newest-frame-wins 6-frame temporal policy engine (RTX side)."""
+    """Newest-frame-wins 6-frame temporal policy engine (RTX side).
 
-    def __init__(self, device=None, history=HISTORY, input_size=INPUT_SIZE):
+    With ``checkpoint=None`` the engine builds the tiny-backbone policy with
+    RANDOM weights (latency-only mode, unchanged behavior). With a checkpoint
+    path it loads the trained ``model_state_dict`` (plus backbone/history/
+    image_size/stats metadata written by train_temporal_v2.py), so weights
+    and pre/post-processing match the training run.
+    """
+
+    def __init__(self, device=None, history=HISTORY, input_size=INPUT_SIZE, checkpoint=None):
+        import os
         import torch
 
         self.torch = torch
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
-        self.history = int(history)
-        self.input_size = int(input_size)
 
         policy_cls, config_cls, backbone_cls = _load_policy_classes()
-        config = config_cls(backbone="tiny", history=self.history)
-        self.backbone = backbone_cls()
-        self.policy = policy_cls(self.backbone, self.backbone.output_dim, config)
+
+        self.denorm = None  # (servo_mean, servo_std, pwm_mean, pwm_std) or None
+        ckpt_info = "none (random tiny)"
+        if checkpoint is not None:
+            ckpt = torch.load(checkpoint, map_location=self.device)
+            backbone_name = ckpt.get("backbone", "tiny")
+            self.history = int(ckpt.get("history", history))
+            self.input_size = int(ckpt.get("image_size", input_size))
+            if backbone_name == "ppgeo_resnet34":
+                from mcqueen_ml.training.backbones import PPGeoResNet34Backbone
+
+                backbone = PPGeoResNet34Backbone(
+                    weights_path=os.environ.get("MCQUEEN_PPGEO_CKPT")
+                )
+            else:
+                backbone = backbone_cls()
+            config = config_cls(backbone=backbone_name, history=self.history)
+            self.policy = policy_cls(backbone, backbone.output_dim, config)
+            self.policy.load_state_dict(ckpt["model_state_dict"])
+            stats = ckpt.get("stats") or {}
+            if all(k in stats for k in ("servo_mean", "servo_std", "pwm_mean", "pwm_std")):
+                self.denorm = (
+                    stats["servo_mean"], stats["servo_std"],
+                    stats["pwm_mean"], stats["pwm_std"],
+                )
+            ckpt_info = "{} backbone={} history={} input={}x{}".format(
+                checkpoint, backbone_name, self.history, self.input_size, self.input_size
+            )
+        else:
+            self.history = int(history)
+            self.input_size = int(input_size)
+            config = config_cls(backbone="tiny", history=self.history)
+            backbone = backbone_cls()
+            self.policy = policy_cls(backbone, backbone.output_dim, config)
+
         self.policy.to(self.device)
         self.policy.eval()
 
@@ -128,12 +166,10 @@ class InferenceEngine(object):
         self.n_skip_not_full = 0
 
         print(
-            "[RTX-INF] ENGINE device={} policy={} history={} input={}x{}".format(
+            "[RTX-INF] ENGINE device={} policy={} ckpt={}".format(
                 self.device,
                 policy_cls.__name__,
-                self.history,
-                self.input_size,
-                self.input_size,
+                ckpt_info,
             ),
             flush=True,
         )
@@ -189,6 +225,9 @@ class InferenceEngine(object):
 
         servo = float(out[0, 0].item())
         pwm = float(out[0, 1].item())
+        if self.denorm is not None:
+            servo = servo * self.denorm[1] + self.denorm[0]
+            pwm = pwm * self.denorm[3] + self.denorm[2]
         # Mirror the Jetson-side safety contract ranges; the authoritative
         # safety gate remains on the Jetson (AutoSafetyGate).
         servo = max(45.0, min(115.0, servo))
@@ -221,11 +260,12 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="standalone latency smoke of the engine")
     p.add_argument("--device", default=None)
     p.add_argument("--frames", type=int, default=20)
+    p.add_argument("--checkpoint", default=None, help="trained checkpoint .pt from train_temporal_v2.py")
     args = p.parse_args()
 
     import numpy as np
 
-    eng = InferenceEngine(device=args.device)
+    eng = InferenceEngine(device=args.device, checkpoint=args.checkpoint)
     rng = np.random.default_rng(0)
     for i in range(args.frames):
         img = rng.integers(0, 255, size=(360, 640, 3), dtype=np.uint8)
