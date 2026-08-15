@@ -26,6 +26,9 @@ object Protocol {
     fun emergency(session: String, sequence: Long, timestampMs: Long): String =
         "E,$TOKEN,$session,$sequence,$timestampMs\n"
 
+    fun resume(session: String, sequence: Long, timestampMs: Long): String =
+        "R,$TOKEN,$session,$sequence,$timestampMs\n"
+
     fun parseStatus(raw: String): StatusPacket? {
         val fields = raw.trim().split(',')
         if (fields.size != 11 || fields[0] != "S") return null
