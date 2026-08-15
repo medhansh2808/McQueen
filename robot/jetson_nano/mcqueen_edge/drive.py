@@ -31,6 +31,7 @@ class DriveController:
 
         self.session = ""
         self.session_armed = False
+        self.resume_required = False
         self.last_sequence = -1
         self.last_command_monotonic = None
 
@@ -51,6 +52,7 @@ class DriveController:
     def _begin_session(self, session):
         self.session = str(session)
         self.session_armed = False
+        self.resume_required = False
         self.last_sequence = -1
         self.last_command_monotonic = None
         self._safe_stop("new session")
@@ -86,8 +88,17 @@ class DriveController:
             self._safe_stop("phone estop")
             return "estop"
 
+        if packet_type == "R":
+            if self.resume_required:
+                self.resume_required = False
+                return "resume"
+            return "resume-idle"
+
         if packet_type != "C":
             return "invalid"
+
+        if self.resume_required:
+            return "resume-required"
 
         steering = int(packet["steering"])
         throttle = int(packet["throttle"])
@@ -130,6 +141,8 @@ class DriveController:
             return False
 
         if float(now) - self.last_command_monotonic > self.failsafe_seconds:
+            self.resume_required = True
+            self.session_armed = False
             self._safe_stop("command timeout")
             return True
 
@@ -143,6 +156,7 @@ class DriveController:
         return {
             "session": self.session,
             "session_armed": self.session_armed,
+            "resume_required": self.resume_required,
             "last_sequence": self.last_sequence,
             "steering": self.steering,
             "throttle": self.throttle,
