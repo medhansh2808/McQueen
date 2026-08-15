@@ -6,9 +6,9 @@ Never silently overwrite historical decisions — append and mark superseded.
 
 ---
 
+- **DATE**: 2026-08-13
 ## DECISION 001 — Adopt repository-based agent contract + context system
 
-- **DATE**: 2026-08-13
 - **QUESTION**: How does the McQueen agent keep durable context and operating rules across
   sessions without ChatGPT?
 - **EVIDENCE**: User bootstrap directive; prior session showed critical context living only in an
@@ -383,3 +383,255 @@ Never silently overwrite historical decisions — append and mark superseded.
   fixing them. DECISION 016's Fix 1/2/3 are now implemented and hardware-verified (FULL LOOP
   p50 ≈ 391 ms on the hotspot link).
 - **STATUS**: VERIFIED
+
+## DECISION 019 — Brokerless re-punch trick; one-tap RESUME re-engage; bitrate A/B replaces theory (user mandates, 2026-08-14 home session 2i)
+
+- **DATE**: 2026-08-14 (home planning session)
+- **QUESTION**: (1) What replaces the broker/cloudflared signaling for re-punch on road
+  hole-death? (2) How does the car resume after an automatic link-loss stop? (3) Is the
+  150 kbps bitrate choice final?
+- **EVIDENCE**: User (2026-08-14 evening): broker should be gone for lab AND road sessions;
+  only a tiny fallback for road hole-death ("extremely simple and extremely functional");
+  rejected aiohttp/cloudflared rewrite ("why tf we using aiohttp if we dropped aiortc and
+  why tf still cloudflare"); accepted the re-punch trick; "both holes dead we can plan a
+  fallback for that but not rn… we fix it only when we face it"; approved one-tap RESUME
+  button ("i dont have a problem with a simple resume button which i gotta tap once");
+  "i would say yes run a proper bitrate test at the lab… we need a reason to stick to 150
+  or simply find a better one". 2b evidence: 400 kbps on the new network → p50 ~160 ms vs
+  150 kbps → 224–287 ms; 400-run loss was NEVER LOGGED (gap); 400 kbps on the OLD network
+  lost ~55% of frames (14.1 fps, p95 1.67 s).
+- **OPTIONS**: (a) tiny broker rewrite (no aiohttp, no cloudflared); (b) **brokerless
+  re-punch trick** — NAT mappings are destination-independent: the RTX's hole stays alive
+  via keepalives even when the Jetson rebinds, so the Jetson re-STUNs and sends a NEWCAND
+  datagram to the RTX's known endpoint through its still-open mapping; (c) keep 150 kbps
+  on theory; (d) bitrate A/B at the lab.
+- **DECISION**: (1) **Brokerless re-punch trick is THE fallback** — no broker rewrite, no
+  aiohttp, no cloudflared in the new design; validate the trick at the lab (kill hole →
+  rebind → NEWCAND recovery) BEFORE removing broker.py from the repo; once lab-proven,
+  broker.py + cloudflared wiring are removed from the repo in the same hardware-verified
+  commit. (2) **Both-holes-dead** (RTX reboot/ISP rebind + Jetson rebind simultaneously):
+  FUTURE TASK — design/fallback only when we face it. (3) **One-tap RESUME re-engage**:
+  Kachow app RESUME button (visible only when the gate is in resume-required state) →
+  sends `R` packet → gate clears `resume_required` → existing neutral-before-motion rule
+  applies. Watchdog (automatic) stops require RESUME; manual E-stop does NOT. (4)
+  **Bitrate is NOT final** — 150 kbps was a network-specific choice on the old link, never
+  A/B-proven; the lab runs a proper bitrate A/B (150/300/400 kbps ×2 cycles, same network,
+  per-run loss + frames_rx + p50/p95 logged — the 400-run loss gap must never recur).
+- **WHY**: Broker/cloudflared are signaling-only (NOT in the media path — DIRECT_UDP
+  proven), so removal changes robustness, not latency; the re-punch trick removes the
+  broker dependency entirely using already-proven mechanisms (STUN + punched UDP +
+  keepalives). Auto-resume after a blackout is unsafe — human re-engage is the safety
+  gate's explicit acknowledgment. Bitrate affects queueing AND model-visible quality, so
+  it must be data-driven on the actual network.
+- **CONSEQUENCES**: Tomorrow's lab order: (1) TRUE PATH RTT (Jetson pings RTX public IP
+  14.139.108.62, NOT 1.1.1.1) → (2) bitrate A/B (150/300/400 ×2, loss-logged) → (3)
+  320×240+pacing only if the floor justifies → (4) re-punch trick validation → (5) real
+  dataset recording → (6) evidence + first-commit-plus (broker.py removal rides it if
+  validation passed). RESUME Jetson-side code (protocol `R` + gate `resume_required` +
+  tests) is laptop-implemented now (this session, approved); Kachow button code-only now,
+  build+verify at lab. Re-punch watcher + both-holes-dead fallback = future tasks.
+- **STATUS**: ACCEPTED (RESUME gate implemented + laptop-tested this session; A/B + re-punch
+  validation pending lab)
+
+---
+
+## DECISION 020 — Strict todo-list discipline (user mandate 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: The human wants a hard, binding rule that a live, accurate, visible todo
+  list exists for EVERY agent session — the todo panel is the human's real-time view of
+  agent work, and it kept going stale or vanishing.
+- **EVIDENCE**: User observed: (a) todo statuses not updated to match the actual task
+  being performed, (b) completed items not marked as done, (c) the list disappearing
+  "so quickly" — cause: a fully-completed list auto-collapses in the TUI, and the list
+  is session-scoped (fresh sessions start empty).
+- **OPTIONS**: (1) soft guideline in state files; (2) binding AGENTS.md section with no
+  exceptions; (3) binding section with a carve-out for pure conversational Q&A. User
+  chose STRICT (2) — every session, even a single trivial task.
+- **DECISION**: New binding AGENTS.md section R "TODO LIST DISCIPLINE": always open a
+  detailed todo list first (no generic placeholders; state-file/verification/commit
+  items included); update in real time with exactly one item `in_progress`; never mark
+  the final item `completed` until the session is genuinely wrapped up (trailing
+  verification item) so the list never collapses mid-session; recreate the list from
+  `.mcqueen/CURRENT_TASK.md` at session start (§N updated with the cross-reference).
+- **WHY**: The todo panel is the human's only live UI view of agent work; a stale or
+  missing list is indistinguishable from the agent not working. Auto-collapse on
+  full-completion was silently eating the list before the human could read it.
+- **CONSEQUENCES**: Every future session starts with a todo list; the final item stays
+  open until verification + state-file updates are done; fully-completed lists appear
+  only at genuine session end. This session (2j) is the first application of the rule.
+- **STATUS**: ACCEPTED (mandate executed this session)
+
+---
+
+## DECISION 021 — 10-second todo auto-dismiss + fresh-list-per-request (user mandate 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: Two observed failures: (1) the todo list did not disappear after the last
+  task completed — the old completed list stayed on the human's screen; (2) when the human
+  asked the push-verification question, they still saw the old list and NO new list — the
+  agent answered a tool-using question with zero todo list, violating strict §R.
+- **EVIDENCE**: (a) opencode TUI bug #30382 — completed todo items linger on screen;
+  `clear()` is never called (non-reactive `session_working()` in the SolidJS store); a
+  fully-completed list does NOT auto-hide, contradicting §R rule 3's original premise.
+  (b) The push question was answered with git-verification tool calls and no todo list
+  created first — a real contract violation by the agent (self-reported).
+- **OPTIONS**: (1) rely on UI auto-dismiss (proven broken — bug #30382); (2) encode the
+  10-second rule as agent behavior: replace a completed list with the next task's list
+  immediately, never leave a completed list visible while the conversation continues;
+  (3) patch the opencode TUI source (out of scope — external project, not McQueen's).
+- **DECISION**: AGENTS.md §R amended (user mandate, strict): rule 3 corrected (completed
+  lists do NOT reliably auto-hide — bug #30382; never rely on it); NEW rule 6 = the list
+  must be gone from the human's screen within ~10 seconds of the last item completing —
+  any follow-up request gets its fresh list FIRST (instant replacement), genuine session
+  end closes the list; NEW rule 7 = every new user message starting any task (even quick
+  verifications) opens a fresh todo list before the first tool call — the human must
+  never see a previous task's items during a new task.
+- **WHY**: The todo dock is the human's only live view of agent work; a stale completed
+  list is indistinguishable from "agent not working" and hides the new task's list. The
+  contract is followed by reading, not enforced by tooling — so the rules must close the
+  exact failure modes observed, and the agent must obey at every step.
+- **CONSEQUENCES**: This session (2k) demonstrates the amended contract end-to-end.
+  Future sessions: completed lists are replaced within ~10 seconds by the next task's
+  list, or closed at session end. Stale-list-while-working = contract violation.
+- **STATUS**: ACCEPTED (mandate executed this session)
+
+---
+
+## DECISION 022 — 2-week sprint: demo bar, freeze-hardware, care protocol, training compute (user mandate 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: Project deadline is 2 weeks out (lab available all 14 days, ~4–8 h/day). The
+  drivetrain is being redesigned (encoder DC motors + quadrature on the drive side,
+  gearbox + differential; servo steering UNCHANGED) and 3D-printed gears failed 4–5 times
+  — no drivetrain exists today. How do we maximize the chance of landing the final demo?
+- **EVIDENCE**: No trained policy exists; Q1 motor-PWM label path still unverified; L1 real
+  inference never run; transport proven (p50 ~160–290 ms, control 43 ms); dataset tooling
+  home-validated; 8 old demos are NOT real driving data (user verdict). User's goal
+  aspiration: comma-ai/openpilot-style autonomy in NEW environments (simcity99-style demo).
+- **OPTIONS**: (1) Full openpilot-level generalization as hard requirement (honest verdict:
+  mathematically out of reach in 2 weeks from a 20-lap imitation dataset); (2) best-effort
+  openpilot with honest floor = track autonomy; (3) track-only demo.
+- **DECISION**: (a) DEMO BAR = best-effort openpilot, honest floor = smooth autonomous laps
+  on the training track with teleop takeover; stretch = direction flips, layout variations,
+  augmentation. No claim of new-environment generalization at the demo. (b) FREEZE-HARDWARE
+  RULE (binding): steering stays the existing servo until after the demo — dataset labels
+  must match deployment hardware 1:1; encoder-servo idea is post-demo. (c) CARE PROTOCOL
+  (binding): sacred list never touched without per-change approval — run_rtp_wan_test.sh,
+  deployed Jetson/RTX copies, teleop path (app→protocol→drive.py→GPIO), recorder +
+  process_recording.sh, sender/receiver pipeline behavior; new work in NEW files first;
+  full test suite after every change; no commits (DECISION 013); no remote access without
+  authorization. (d) TRAINING COMPUTE: real policy training runs on the RTX 4090 — user
+  states full resources will be available at training time; ViReL untouchable rule STANDS
+  until the user personally confirms that job is done. (e) DATASET: ~20 laps by Tuesday
+  (drivetrain must pass Q1 kachow_probe on final hardware FIRST); environments decided at
+  recording time — agent will ask the user then. (f) PARALLEL SOFTWARE DE-RISK starts now
+  (laptop-only): training rehearsal (train→checkpoint→MCQUEEN_PPGEO_CKPT→inference_rtx.py
+  --inference real smoke on old demos), Kachow build, transport procedure scripts.
+- **WHY**: Dataset quality + hardware freeze + proof of the full train→deploy→infer chain
+  before real data exists are the only levers that move the 2-week odds; untested chain
+  links on the critical path are how deadlines die.
+- **CONSEQUENCES**: Next lab: gearbox/differential/encoder motors → bench → Q1 probe pass →
+  record 20 laps (env questions asked at recording time). Agent: state files updated this
+  session; rehearsal scripts NEW files; nothing on the working pipeline touched.
+- **STATUS**: ACCEPTED (this session; rehearsal + state files in progress)
+
+---
+
+## DECISION 023 — NO training on the laptop; training runs only on the RTX 4090 (user mandate 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: Can the rehearsal training run on the laptop while the user is away?
+- **EVIDENCE**: The laptop FREEZES under sustained torch training load — twice observed
+  2026-08-15 (tiny-backbone 10-epoch run). First freeze coincided with a ~7 GB full-res
+  image cache (agent bug, since fixed to ~380 MB resized cache); the SECOND freeze happened
+  on the memory-fixed run → the hardware itself (7.6 GB RAM total, GTX 1650 Max-Q 4 GB)
+  is the constraint, not just the cache. User verdict after the second freeze: "do not at
+  all freeze my laptop once again… we will do that at lab today on 4090".
+- **OPTIONS**:
+  1. Run training on the laptop with conservative settings (rejected — froze twice already).
+  2. No laptop training at all; trainer runs on the RTX 4090 at lab (chosen).
+- **DECISION**: Training (any torch training loop) NEVER runs on the laptop. All training
+  happens at the lab on the RTX 4090 (after the user confirms the ViReL job is done —
+  DECISION 014 rule still binds until then). At home: CPU-light work only; any run that
+  risks sustained CPU/GPU load or large RAM is deferred to the lab.
+- **WHY**: Observed hardware freeze, twice, with zero exceptions; user mandate. A frozen
+  laptop kills the home session and wastes the user's time.
+- **CONSEQUENCES**: The trainer is verified at home only by import/argparse/py_compile;
+  its first real execution is the lab 4090 run. Rehearsal chain C was verified CPU-only
+  with a synthetic checkpoint. All tests at home run CPU-light.
+- **STATUS**: ACCEPTED (user mandate).
+
+---
+
+## DECISION 024 — NO torch execution of ANY kind on the laptop — strengthening of DECISION 023 (user mandate 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: Is a single-batch, forward-only, GPU smoke of the training pipeline acceptable on the laptop (as scoped in DECISION 023)?
+- **EVIDENCE**: The laptop FROZE a THIRD time during exactly that smoke (tiny backbone, batch 8, ONE forward, NO backward, RAM guard passed with 5.2 GB available, 180 s alarm). Earlier the same day it froze twice under the training loop. Combined with the CPU-only data-pipeline debugging that ran fine all day, the freeze is triggered by torch/CUDA execution itself (model.to(cuda) + forward), not just training loops. User verdict: "DO NOT EVER EVER DO THIS SHIT AGAIN ON THIS LAPTOP THAT MAKES IT FREEZE".
+- **OPTIONS**:
+  1. Keep DECISION 023 as-is (no training loops; single forward allowed) — rejected: the smoke froze the machine.
+  2. Zero torch execution on the laptop: no imports of torch/lerobot, no model construction, no forward, no CUDA — all of it at the lab (chosen).
+- **DECISION**: NO torch execution of ANY kind on the laptop — no training loops, no single-batch forwards, no CUDA init, no lerobot/torch imports in runs. At home, verification is limited to: py_compile, pure-python tests (system python3, no torch), bash -n, static review. Everything torch-related (smoke, training, inference tests) runs at the lab on the RTX 4090.
+- **WHY**: Three observed freezes, the last one on the lightest possible torch workload. The laptop is not reliable under any torch execution; each freeze costs the user a reboot and risks losing session state.
+- **CONSEQUENCES**: `mcqueen_ml/training/smoke_train_batch.py` is WRITTEN + py_compile-verified but NEVER runs on the laptop — its first run is the lab 4090 pre-flight (first thing before real training). `test_inference_rtx.py`, `test_checkpoint_inference.py`, `test_temporal_policy_v2.py`, `test_backbones_ppgeo_resnet34.py` are NOT re-run at home anymore — their last green run was session 2m; they re-run at lab.
+- **STATUS**: ACCEPTED (user mandate, binding).
+
+---
+
+## DECISION 025 — HOME = ONLY laptop + phone (user mandate, binding 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: Which devices are ever present at the user's home?
+- **EVIDENCE**: User made this a HARD rule while angry that the agent assumed the Jetson
+  had come home: "HOME ALWAYS AND ALWAYS MEAN THAT ONLY THE LAPTOP AND MY PHONE WILL BE
+  WITH ME AT HOME". The Jetson was left at the lab (unreachable from home — behind campus
+  NAT/firewall, no tunnel). The agent's wrap-up had wrongly listed the Jetson in the
+  carry-bag and claimed "everything covered"; the correct home-scope was laptop+phone only.
+- **DECISION**: HOME always contains ONLY this laptop and the user's phone — nothing else.
+  No Jetson, no RTX, no camera, no power banks, no other hardware. Never assume otherwise;
+  at session end verify the carry list is laptop + phone only. Any plan requiring a
+  non-laptop device at home is invalid by definition. Remote-machine work at home is only
+  possible via established remote-access infrastructure (reverse tunnels — see DECISION 026
+  task), never via device presence. Also: never claim remote-machine access works without
+  an actual connectivity test (the SSH-from-home claim was made without a test — timeout
+  was the real result).
+- **WHY**: User mandate; repeated assumption failures erode trust. The Jetson does not
+  belong to the home environment; expecting it there breaks the user's workflow and the
+  agent's honesty rules.
+- **CONSEQUENCES**: Home sessions are laptop+phone only by default; Jetson/RTX debug is a
+  lab activity unless reverse-tunnel infrastructure (DECISION 026) provides remote access.
+- **STATUS**: ACCEPTED (user mandate, binding).
+
+---
+
+## DECISION 026 — Remote-access infrastructure for Jetson + RTX (approved 2026-08-15)
+
+- **DATE**: 2026-08-15
+- **QUESTION**: How can home sessions reach the lab machines (Jetson, RTX) despite the
+  campus firewall blocking ALL inbound ports from the home ISP?
+- **EVIDENCE** (verified from home, 2026-08-15): RTX public IP `14.139.108.62` is CONSTANT
+  (static campus 1:1 NAT — same IP across Aug 14 and 15 runs, 8+ evidence logs). SSH port
+  22 and all probed ports (22/80/443/8765/8080) time out from the home network — the campus
+  firewall drops inbound from the home ISP; only outbound-punched (STUN) ephemeral UDP
+  ports ever worked. The RTX is ALIVE: the trycloudflare quick tunnel
+  (`carlo-booth-austin-pics.trycloudflare.com`) resolves via external DNS (8.8.8.8, 1.1.1.1)
+  and answers HTTP (404 on plain GET — ws-only endpoint). Home DNS (systemd-resolved
+  upstream) REFUSED trycloudflare lookups — a local resolver quirk, NOT a dead tunnel;
+  external-DNS checks are the reliable test. Cannot restart/start anything on the RTX from
+  home without a shell route (circular — needs the tunnel first).
+- **DECISION**: At the NEXT LAB SESSION, set up persistent remote-access infrastructure so
+  home sessions can reach BOTH machines regardless of campus inbound filtering:
+  1. Jetson: install cloudflared + its own tunnel; evaluate TCP-capable options for SSH
+     (cloudflared quick tunnel `--url tcp://localhost:22` + `cloudflared access tcp`
+     client, or frp / ngrok-TCP) — compare on evidence, pick one, make it a systemd
+     service so it survives reboots.
+  2. RTX: same treatment for SSH (its public IP is firewall-blocked on 22).
+  3. Document the exact client-side connect recipe in the repo.
+  Until then: no remote machine work from home; lab-only for Jetson/RTX operations.
+- **WHY**: The user wants home sessions to include real Jetson/RTX debug; the campus
+  firewall makes direct inbound impossible; the only reliable path is outbound tunnels.
+- **CONSEQUENCES**: Next lab session includes this setup task before other work. Until
+  done, home = laptop+phone only (DECISION 025).
+- **STATUS**: APPROVED (user 2026-08-15, "yes add that persistent reverse tunnel on jetson
+  thing"); IMPLEMENTATION PENDING (lab session required).

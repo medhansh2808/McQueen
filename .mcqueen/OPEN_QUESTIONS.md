@@ -2,6 +2,34 @@
 
 Each entry: question, why it matters, who/what can resolve it, status.
 
+## Q14 — Temporal-rate mismatch: 10 fps training data vs 30 fps live inference — OPEN (design question, decide after first policy eval)
+- **Question**: The policy's 6-frame window covers ~600 ms at 10 fps (training, recorder
+  `RECORD_FPS=10`) but ~200 ms at 30 fps (live receiver). Does the per-step motion
+  mismatch hurt driving performance enough to need a fix?
+- **Why**: User chose 10 fps recording (session 2n) for consistency + zero recorder risk;
+  the live loop is fixed at 30 fps (measured winner). The mismatch is real but non-fatal
+  (relative motion still reads correctly).
+- **Resolve**: Evaluate the FIRST trained policy live; if temporal behavior looks off,
+  candidates: (a) frame-subsampling at inference (receiver feeds every Nth frame —
+  receiver-side change, sacred-list approval), (b) random subsampling during training.
+- **Status**: OPEN (log entry only; NO code change now — user-approved 10 fps).
+
+---
+
+## Q13 — Receiver `--inference real` integration (gst_rtx_rtp_receiver.py CPU-dummy → InferenceEngine) — OPEN, PROPOSABLE NOW (tiny ckpt trained)
+- **Question**: Once a trained checkpoint exists, should `gst_rtx_rtp_receiver.py` replace
+  its CPU dummy inference with `InferenceEngine(checkpoint=...)` (real temporal policy)?
+- **Why**: The receiver's pipeline behavior is on the sacred list (care protocol, DECISION
+  022) — per-change approval required. The inference_rtx.py side (checkpoint loading) is
+  already done + tested (18/18 + 11/11).
+- **UPDATE 2026-08-15 (session 2r)**: a REAL trained checkpoint now exists
+  (`/home/junior/mcqueen_run/rehearsal_temporal.pt`, tiny backbone, CPU infer 6.59 ms/frame
+  verified on RTX). The original L1 gate (real dataset → PPGeo policy trained) is NOT met
+  for full PPGeo live inference, but the user can choose: (a) demo-loop inference with the
+  tiny rehearsal ckpt (training/rehearsal data only, NOT real driving), or (b) wait for
+  PPGeo training on real data. Proposal deferred to user decision at next session.
+- **Status**: OPEN (approval gate; do not touch the receiver without it).
+
 ---
 
 ## Q12 — 10 fps measured WORSE latency than 30 fps — RESOLVED (fps ladder + RTT probe)
@@ -35,6 +63,10 @@ Each entry: question, why it matters, who/what can resolve it, status.
   when they next approve code changes; implement with a bounded reconnect loop in the sender's
   ws handling (McQueen files only).
 - **Status**: OPEN (finding recorded; fix deferred — user scoped this session to the 3 fixes).
+  **UPDATE 2026-08-14 evening (DECISION 019): becomes MOOT once the brokerless design rides
+  the next hardware-verified commit** — brokerless lab AND road has no ws at all (re-punch
+  trick instead); sender ws-reconnect would only matter if the broker stays. Re-evaluate only
+  if the re-punch lab validation fails.
 
 ---
 
@@ -53,9 +85,12 @@ Each entry: question, why it matters, who/what can resolve it, status.
   direct), receiver learns the sender's source from incoming RTP, run script reads both
   PUBLIC lines via SSH and passes `--peer`. Caveats: public endpoints change per restart
   (re-read every run); CGNAT public port changes across sender restarts; STUN on both sides.
-- **Status**: **DECIDED 2026-08-14 — user wants the broker REMOVED (manual peer exchange);
-  execution DEFERRED to tomorrow (estimates given: ~1.5–2.5 h incl. live verify).** The
-  earlier "keep broker" (Q9, run-package choice) is superseded. Removes broker + cloudflared
+- **Status**: **DECIDED 2026-08-14 — user wants the broker REMOVED; SUPERSEDED 2026-08-14
+  evening by DECISION 019 (the re-punch trick)** — brokerless for lab AND road; fallback =
+  RTX's destination-independent NAT hole (kept alive by keepalives) + Jetson NEWCAND
+  re-STUN through it. No broker rewrite, no aiohttp, no cloudflared. Lab validation step
+  added (kill hole → rebind → recover); broker.py removed from the repo only if validation
+  passes. Both-holes-dead = future task (fix when faced). Removes broker + cloudflared
   + tunnel URL + the Q11 ws-reconnect failure class; NOT in the latency path (video/controls
   are direct UDP after punch), so no latency change — it removes failure modes. Also note:
   the sender re-pointing to a new receiver port WITHOUT a fresh restart does NOT re-establish
@@ -63,18 +98,16 @@ Each entry: question, why it matters, who/what can resolve it, status.
 
 ---
 
-## Q10 — GPU contention: ViReL train.py on the 4090
-- **Question**: RTX GPU is 100% busy with `/home/junior/ViReL/Tasks/vlmgrpo` `python train.py`
-  (PID 490867). Who owns it? Can it ever be paused?
-- **Why**: NVDEC + CUDA dummy inference queue behind it (169 ms/op, ~1 fps, stalls).
-- **Resolve**: VERIFIED 2026-08-14 — runs as `junior`, cwd ~/ViReL/Tasks/vlmgrpo, NOT
-  McQueen's (outside McQueen dirs). User: "na do not touch virel at all." Plan A (CPU
-  decode/infer) makes the test independent of the GPU.
-- **Status**: RESOLVED — and moot as of later 2026-08-14: **train.py is GONE** (nvidia-smi 0%
-  util, 27 MiB). GPU free; full-loop run was uncontended. CPU path still used per approval.
-  **UPDATE 21:41: a NEW train.py (PID 575347, started 20:17, 90% util / 20.4 GiB VRAM) is
-  running again** — still NOT McQueen's, still untouchable; Plan A (CPU path) proven
-  GPU-independent (jitter25 run sustained 25.4 fps while it ran).
+## Q10 — GPU contention: neighbor training job on the 4090
+- **Question**: RTX GPU is busy with someone else's job. Who owns it? Can it ever be paused?
+- **Why**: NVDEC + CUDA inference queue behind it (stalls measured).
+- **Resolve**: VERIFIED 2026-08-14/15 — jobs run as `junior`, NOT McQueen's (outside McQueen
+  dirs). User: "na do not touch virel at all" (2026-08-14) and chose the CPU path for
+  today's training. Plan A (CPU decode/infer) is GPU-independent (proven).
+- **Status**: RESOLVED — jobs: 2026-08-14 ViReL train.py PID 575347 → GONE; 2026-08-15 NEW
+  `train.py` PID 744309 (`~/grpo-gsm8k-output`, 20.3 GB VRAM, 82%) still running at
+  session end — untouchable (DECISION 014); CPU training path proven viable (32 cores/62 GB
+  RAM, 20-epoch rehearsal trained fine). PPGeo training waits for it to finish.
 
 ---
 
@@ -143,7 +176,8 @@ Each entry: question, why it matters, who/what can resolve it, status.
   agent guidelines respected like a constitution.
 - **Resolve**: RESOLVED 2026-08-13 — user chose "Commit now": committed locally (no push).
   Push still deferred per user rule (GitHub updates only when hardware works).
-- **Status**: RESOLVED (local commit done; push pending future lab milestone)
+- **Status**: RESOLVED (local commit done; push DONE 2026-08-14 evening — `6698d41` +
+  first hardware-verified `8f35564` both on GitHub)
 
 ## Q6 — RESOLVED (2026-08-13 audit): bootstrap + WAN code + evidence all committed AND pushed
 - Everything through `6698d41` is on GitHub (origin == local). User confirmed the push was

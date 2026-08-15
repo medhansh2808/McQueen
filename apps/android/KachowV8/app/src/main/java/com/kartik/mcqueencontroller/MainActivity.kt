@@ -59,6 +59,7 @@ class MainActivity : Activity(), UdpController.Listener {
     private lateinit var logButton: Button
     private lateinit var brakeButton: Button
     private lateinit var cameraButton: Button
+    private lateinit var resumeButton: Button
     private lateinit var joystickModeButton: Button
     private lateinit var sliderModeButton: Button
     private lateinit var servoBar: TelemetryBarView
@@ -143,6 +144,7 @@ class MainActivity : Activity(), UdpController.Listener {
             connectionText.setTextColor(GREEN)
             statusInfoText.text = "${status.source}  •  ${if (status.failsafe) "FAILSAFE" else "LIVE"}"
             statusInfoText.setTextColor(if (status.failsafe) AMBER else Color.argb(210, 255, 255, 255))
+            resumeButton.visibility = if (status.failsafe) View.VISIBLE else View.GONE
         }
     }
 
@@ -275,8 +277,12 @@ class MainActivity : Activity(), UdpController.Listener {
         cameraButton = actionButton("CAM") { loadCameraFeed() }
         logButton = actionButton("LOG") { if (logger.isLogging) stopLogging(true) else startLogging() }
         val settingsButton = actionButton("SET") { showSettingsDialog() }
+        resumeButton = actionButton("RESUME") {
+            controller.sendResume()
+            vibrate(60)
+        }.apply { visibility = View.GONE }
 
-        listOf(takeControlButton, armButton, cameraButton, logButton, settingsButton).forEach {
+        listOf(takeControlButton, armButton, cameraButton, logButton, settingsButton, resumeButton).forEach {
             topBar.addView(it, LinearLayout.LayoutParams(dp(57), dp(43)).apply { marginStart = dp(4) })
         }
         return topBar

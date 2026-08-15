@@ -69,3 +69,6 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
+
+# Personal context folder (never part of the repo)
+context stuff for understanding the mcqueen project/

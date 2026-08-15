@@ -375,6 +375,20 @@ class UdpController(
         }
     }
 
+    fun sendResume() {
+        val localSocket = socket ?: return
+        val target = remoteAddress ?: return
+        val localSession = synchronized(stateLock) { sessionId }
+        val sequenceNumber = nextSequence()
+        val raw = Protocol.resume(localSession, sequenceNumber, System.currentTimeMillis())
+        synchronized(sendLock) {
+            runCatching {
+                val bytes = raw.toByteArray(Charsets.US_ASCII)
+                localSocket.send(DatagramPacket(bytes, bytes.size, target))
+            }.onFailure { listener.onError("UDP send failed: ${it.message}") }
+        }
+    }
+
     private fun sendRaw(raw: String) {
         val localSocket = socket ?: return
         val target = remoteAddress ?: return

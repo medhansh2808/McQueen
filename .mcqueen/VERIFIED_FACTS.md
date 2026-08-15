@@ -5,6 +5,79 @@ Format: FACT | SOURCE | DATE/COMMIT | CONFIDENCE
 
 ---
 
+## Hardware-verified (2026-08-15 lab — session 2r)
+- FACT: Jio 5G full-loop test (session 2s): sender ran continuously through an outside walk on a
+  power bank (resilient autostart wrapper, 0 restarts, 0 stall-kills); RTX received 49,369 frames,
+  fps 20.6, assoc 95.3%, ctrl_sent 46,094. **Loop p50 did NOT improve**: best ~223-224 ms at the
+  desk on stable 4G; 5G++ spot window ~231-237 ms (≈ stable 4G); cumulative end 257.7 ms; p95
+  worsened to ~1239 ms from 5G↔5G++↔4G mode-shifting. **5G++ ≈ 4G median, worse tail — <100 ms
+  not achieved via 5G on this phone.** RTT ~50 ms either way → queueing across the path is the wall.
+  SOURCE: docs/evidence/2026-08-15/5g/ (sender.log, receiver.log, REPORT.md). DATE: 2026-08-15.
+  CONFIDENCE: VERIFIED (hardware, live).
+- FACT: Jetson `/tmp` is tmpfs — wiped on reboot (the first autostart wrapper in `/tmp` vanished
+  after the power-swap reboot; cron fired into a missing file). Fix: autostart moved to
+  `/home/sravjti/mcqueen_5g/` (persists). ALSO: `mcqueen-edge.service` (GPIO app) holds
+  `/dev/video0` at boot → any sender must start after edge is stopped (or edge must not grab the
+  camera). ALSO: unanchored `pkill -f` inside a cleanup ssh kills the cleanup shell itself
+  (F7-class) — use precise PID kills.
+  SOURCE: 2026-08-15 lab debugging. CONFIDENCE: VERIFIED.
+- FACT: Rehearsal temporal policy TRAINED on RTX CPU (neighbor GPU job untouched): 20 epochs,
+  tiny backbone, batch 16, best_val 3.02 → `/home/junior/mcqueen_run/rehearsal_temporal.pt`
+  (36 MB; ckpt keys: model_state_dict/backbone=tiny/config/action_names [servo_angle_deg,
+  motor_pwm]/stats/history=6/image_size=224/epochs/seed/train_loss/val_loss).
+  SOURCE: smoke_train_batch.py PASS (630 samples/6 eps, forward (8,2)); train run + ckpt key
+  verification on RTX. DATE: 2026-08-15. CONFIDENCE: VERIFIED (hardware).
+- FACT: Real-ckpt inference chain verified on RTX: test_checkpoint_inference.py 10/10,
+  test_inference_rtx.py 18/18; `inference_rtx.py --checkpoint --device cpu` infer avg
+  6.59 ms/frame → servo=89.0, pwm=4 (near-center). CUDA single-frame measured 444.75 ms
+  while GPU busy (path proven, not fast).
+  SOURCE: test + inference output on RTX. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: KACHOW APK built from source: gradle 9.4.1 + JDK 17 `assembleDebug` SUCCESS (27 s) →
+  `apps/android/KachowV8/app/build/outputs/apk/debug/app-debug.apk`. Install HELD per user.
+  SOURCE: gradle build output. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: Full WAN loop (Jetson hotspot → punched UDP → RTX → control return) VERIFIED LIVE:
+  sender `CTRL_RX n=960`, LAT_p50=276.5 ms / LAT_p95=486.7 ms @300 kbps; receiver
+  RTP_RX pkts=4530, frames_rx=1072, fps 18.3, assoc 941/1019 (~94%), infer_avg 0.12 ms.
+  SOURCE: docs/evidence/2026-08-15/ (REPORT.md + ab/); sender/receiver logs. DATE:
+  2026-08-15. CONFIDENCE: VERIFIED (hardware, live).
+- FACT: The WAN path needs NO port-forward: receiver binds ephemeral port + STUN punch;
+  campus NAT endpoint-independent. Observed public endpoints: receiver
+  14.139.108.62:49995 → :41820 → :53591 (fresh per run), Jetson 152.59.109.96:59856;
+  media/control = direct peer-to-peer UDP (achieved=422 kbps @400 setting, peer in logs).
+  Port-forward theory in the 2026-08-15 docs was RETRACTED after evidence.
+  SOURCE: ERROR_LOG_2026-08-15.md entry A + run logs. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: 2026-08-15 full-loop blocker was a DEAD cloudflared tunnel (log `Tunnel server
+  stopped`) + STALE URL file (`unfortunately-wrestling-kim-traveller.trycloudflare.com`)
+  — F8-class. Fixed: fresh tunnel `https://carlo-booth-austin-pics.trycloudflare.com`
+  (PID 759025, URL file refreshed) → signaling verified from Jetson (`{"ok": true...}`).
+  cloudflared = startup broker ONLY; never on the media path.
+  SOURCE: ERROR_LOG_2026-08-15.md entry A. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: Bitrate A/B 150/300/400 kbps ×2 + manual 400 rerun (6th scripted run: transient
+  websocket 530 on signaling): ctrl_rx in EVERY data run; loop p50 stable 270–280 ms across
+  bitrates; fps 18–22; assoc ~94–96%; 150_1 loss 2.9% / assoc 4.3% (other runs: snapshot
+  skew artifact — receiver counts continuously vs sender meta lag; recorded, not hidden).
+  SOURCE: docs/evidence/2026-08-15/ab/{summary.txt,run_*/logs}. DATE: 2026-08-15.
+  CONFIDENCE: VERIFIED (with artifact noted).
+- FACT: A/B script process management: `pkill -f <scriptname>` SELF-MATCHES even with the
+  bracket trick when the command line also starts the script (the literal name is in the
+  nohup line) — the shell kills itself. F7-safe solution = PID files
+  (`kill $(cat *.pid)` + `kill -0` checks). 3 launch failures diagnosed, all fixed,
+  relaunch verified (RECEIVER_ALIVE + PUBLIC printed).
+  SOURCE: ERROR_LOG_2026-08-15.md entry D. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: WAN ping Jetson(hotspot)→14.139.108.62: min 45.4 / avg 53.8 / max 62.3 ms (0% loss);
+  LAN RTT probe laptop→RTX 192.168.0.132:5955 10/10, avg 3.36 ms. Probe tool is Python
+  3.6-safe (Jetson) via `_mono_ns()` = int(time.monotonic()*1e9).
+  SOURCE: 2026-08-15 lab runs + AUDIT sections 7-8. CONFIDENCE: VERIFIED.
+- FACT: `run_rtp_wan_test.sh` (sacred) UNTOUCHED 2026-08-15 (git diff empty for it); only
+  new scripts were edited (run_bitrate_ab.sh, measure_true_path_rtt.py) per care protocol.
+  SOURCE: git diff --stat. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: Jetson `mcqueen-edge.service` restored ACTIVE at session end (was stopped for
+  pipeline testing; `sudo -S` with transient helper). A/B/manual procs all stopped.
+  SOURCE: systemctl is-active. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: Neighbor GPU job at session end: `train.py` PID 744309 (`~/grpo-gsm8k-output`,
+  20.3 GB VRAM, 82% util) — NOT McQueen's, untouched (DECISION 014). ViReL PID 575347 gone.
+  SOURCE: nvidia-smi/ps on RTX. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+
 ## Git / repository
 - FACT: Repo root is `/home/kartik/McQueenWork/McQueen`; remote is `https://github.com/medhansh2808/McQueen.git`.
   SOURCE: `git remote -v` (run 2026-08-13). CONFIDENCE: VERIFIED.
@@ -143,20 +216,22 @@ Format: FACT | SOURCE | DATE/COMMIT | CONFIDENCE
 - FACT: Standalone inference CLI on the LAPTOP GPU: warmup 172 ms, steady ~3–4 ms/forward at
   640×480 — a laptop number, NOT the 4090; no RTX performance claim made.
   SOURCE: CLI smoke (2026-08-14). CONFIDENCE: VERIFIED (with boundary).
-- FACT: Git state 2026-08-14 end: branch `jetson-nano`, HEAD == origin == `6632913`; prep
-  work uncommitted by DECISION 013 (modified: AGENTS.md, DECISIONS.md, model_config_v2.py,
+- FACT: ~~Git state 2026-08-14 end: branch `jetson-nano`, HEAD == origin == `6632913`; prep
+  work uncommitted by DECISION 013~~ **(SUPERSEDED 2026-08-14 evening by FACT 86: first
+  hardware-verified commit `8f35564` pushed; the uncommitted list below is now committed):**
+  modified: AGENTS.md, DECISIONS.md, model_config_v2.py,
   gst_jetson_rtp_wan.py, gst_rtx_rtp_receiver.py, kachow_probe.py, run_rtp_wan_test.sh,
   AUDIT doc; untracked: broker.py, inference_rtx.py, test_inference_rtx.py, backbones.py,
   test_backbones_ppgeo_resnet34.py, capture_evidence.sh, process_recording.sh,
-  MILESTONE_TEMPLATE.md, HOME_DEBUG doc, test_rtp_packetization.py, context folder).
-  SOURCE: `git status` (2026-08-14). CONFIDENCE: VERIFIED.
-- FACT: On 2026-08-14 the user pushed `57561db` "actaul audit" DIRECTLY to GitHub (web UI,
-  commit by kt-fr) — origin/jetson-nano is 1 commit AHEAD of local `6632913`. It only edits
-  `docs/AUDIT_2026-08-13.md` (removes the timeline table, 1 insertion / 14 deletions). The
-  local working copy's uncommitted AUDIT edit (timeline paragraph + "Jetson sender" typo
-  fix) still differs — reconcile at the first hardware-verified commit (pull/rebase then
-  commit, or keep local version). No functional conflict; state files predate the push.
-  SOURCE: `git fetch origin` + `git show` (2026-08-14 lab session). CONFIDENCE: VERIFIED.
+  MILESTONE_TEMPLATE.md, HOME_DEBUG doc, test_rtp_packetization.py, context folder.
+  SOURCE: `git status` (2026-08-14). CONFIDENCE: VERIFIED (historical snapshot, superseded).
+- FACT: ~~On 2026-08-14 the user pushed `57561db` "actaul audit" DIRECTLY to GitHub (web UI,
+  commit by kt-fr) — origin/jetson-nano is 1 commit AHEAD of local `6632913`; it only edits
+  `docs/AUDIT_2026-08-13.md` (removes the timeline table, 1 insertion / 14 deletions); the
+  local working copy's own AUDIT edit (timeline paragraph + "Jetson sender" typo fix)
+  differed — reconcile at the first hardware-verified commit~~ **(SUPERSEDED 2026-08-14
+  evening: absorbed via `git reset --soft origin/jetson-nano`, local AUDIT version KEPT,
+  everything pushed in `8f35564`; repo sync 0/0).
 
 ## 2026-08-14 LAB session (VERIFIED from live machines)
 - FACT: Jetson USB SSH ok; camera at
@@ -195,10 +270,10 @@ Format: FACT | SOURCE | DATE/COMMIT | CONFIDENCE
   F8 stale cloudflared.url refresh (2026-08-13 URL dead; live tunnel re-registered a new URL);
   F9 sudo bounded/conditional (never hang).
   SOURCE: bash -n + SURVIVED tests + run outputs (2026-08-14). CONFIDENCE: VERIFIED.
-- FACT: Origin/jetson-nano is 1 commit AHEAD of local (`57561db` "actaul audit", kt-fr web
+- FACT: ~~Origin/jetson-nano is 1 commit AHEAD of local (`57561db` "actaul audit", kt-fr web
   push 2026-08-14 00:17, only docs/AUDIT_2026-08-13.md: removed timeline table). Local
-  working copy has its own uncommitted AUDIT edit — reconcile at first hardware-verified commit.
-  SOURCE: git fetch + git show (2026-08-14). CONFIDENCE: VERIFIED.
+  working copy has its own uncommitted AUDIT edit — reconcile at first hardware-verified
+  commit~~ **(SUPERSEDED 2026-08-14 evening: reconciled + pushed in `8f35564`; sync 0/0).
 
 ## 2026-08-14 LAB session 2 — fixes implemented on reset baseline, FULL LOOP measured (VERIFIED)
 - FACT: Per user order the sender/receiver/run-script were reset to GitHub HEAD (`6632913`);
@@ -394,3 +469,118 @@ Format: FACT | SOURCE | DATE/COMMIT | CONFIDENCE
   <100 ms was aspirational, NOT a hard spec. Ideal road link: Jio 5G (RTT ~10–30 ms →
   <100 ms comfortably achievable); 4G borderline (~60 ms floor + queueing).
   SOURCE: user (2026-08-14 evening). CONFIDENCE: VERIFIED (user decision).
+- FACT: First hardware-verified commit exists on GitHub: `8f35564` pushed to
+  origin/jetson-nano (`57561db..8f35564`, repo sync 0/0). Contains all H1–H5 prep, lab
+  fixes, 14-file milestone evidence, AUDIT/ERROR_LOG 08-14, and the branch-only purge of
+  52 legacy/old-hardware files. No restructure tag created yet (deferred to explicit
+  "do github restructure rn" trigger).
+  SOURCE: git log/status (pushed this session). CONFIDENCE: VERIFIED.
+- FACT: Second purge pushed `30728e1`: `robot/uno_q/` (9 files — STM32 + OAK-D + YOLOv6
+  phone-control, the pre-Jetson Uno Q generation; zero current references; robot/jetson_nano
+  KEPT as current). Cumulative old-hardware purge = 61 files across `8f35564` + `30728e1`.
+  SOURCE: git log/status. CONFIDENCE: VERIFIED.
+- FACT: Broker policy (DECISION 019, user mandate 2026-08-14 evening): brokerless for lab AND
+  road sessions; fallback = the re-punch trick (NAT mappings are destination-independent —
+  the RTX's hole stays alive via its keepalives even while the Jetson rebinds; Jetson
+  re-STUNs and sends NEWCAND to the RTX's known endpoint through the still-open mapping).
+  No broker rewrite, no aiohttp, no cloudflared in the new design; broker.py removal from
+  the repo rides the next hardware-verified commit ONLY if the lab validation passes.
+  SOURCE: user decision (2026-08-14 evening). CONFIDENCE: VERIFIED (decision; trick unvalidated).
+- FACT: The 400 kbps new-network run (session 2b, p50 ~160 ms / p95 ~380 ms) had its loss /
+  frames_rx NEVER LOGGED — the run's log was not preserved in evidence. The 400 kbps run on
+  the OLD network lost ~55% of frames (14.1 fps, p95 1.67 s). Gap recorded; the lab bitrate
+  A/B (DECISION 019) must log loss per run.
+  SOURCE: evidence review (2026-08-14 evening). CONFIDENCE: VERIFIED (gap confirmed).
+
+## Training rehearsal + transport prep (home, 2026-08-15 — session 2m)
+- FACT: 5 usable old demo sessions (630 frames / 6 episodes) converted to LeRobot datasets
+  `data/lerobot/rehearsal/<session>/` (repo-id `mq-rehearsal-<session>`); read-back verified:
+  len 238 first dataset, `front_rgb` [3,720,1280] float32, `wheels` [0,0,0], `action` [90,0].
+  SOURCE: `mcqueen_ml/dataset/convert_spool.py` + `validate_spool.py` + read-back runs.
+  DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: `session_20260810_133136` FAILS validation (110 frames @ 5.00 Hz < 9–11 Hz
+  contract); `session_20260809_180739` + `session_20260809_180748` empty. SOURCE:
+  validate_spool.py output. CONFIDENCE: VERIFIED.
+- FACT: NO training loop for TemporalDrivingPolicy existed; NEW trainer
+  `mcqueen_ml/training/train_temporal_v2.py` (episode-level split, MSE on normalized
+  actions, PPGeo/tiny backbones, resized 224×224 image cache ~380 MB) verified at home
+  ONLY by import/argparse/py_compile — never executed (DECISION 023: laptop freezes under
+  torch training; first real run = lab 4090). SOURCE: py_compile + argparse smoke.
+  CONFIDENCE: VERIFIED (import-level) / training outcome UNVERIFIED.
+- FACT: `tools/realtime/inference_rtx.py` now loads a trained checkpoint (`--checkpoint`:
+  backbone/history/image_size/denorm from checkpoint; default random-tiny path unchanged):
+  existing `test_inference_rtx.py` 18/18 PASS + NEW `test_checkpoint_inference.py` 11/11
+  PASS (synthetic checkpoint, CPU). SOURCE: test runs. DATE: 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: Full suite green after inference_rtx.py edit: tests/test_jetson_protocol.py OK,
+  test_jetson_drive.py PASS, test_realtime_contract.py OK (5),
+  mcqueen_ml/training/test_temporal_policy_v2.py OK (3),
+  test_backbones_ppgeo_resnet34.py OK (5, real PPGeo checkpoint). CONFIDENCE: VERIFIED.
+- FACT: Laptop hardware limit: 7.6 GB RAM total, GTX 1650 Max-Q 4 GB; froze TWICE under
+  torch training load 2026-08-15 (first with a ~7 GB full-res cache — agent bug fixed to
+  ~380 MB; second on the fixed run) → DECISION 023 (no laptop training, ever). SOURCE:
+  observed freezes + user mandate. CONFIDENCE: VERIFIED.
+- FACT: Laptop has Android SDK (`/home/kartik/Android/Sdk`: platform android-36, build-tools
+  36.0.0, JDK 17, adb, sdkmanager) but NO gradle distribution, NO gradle-wrapper.jar,
+  NO local.properties → app build deferred to lab (fetch gradle-9.4.1-bin.zip + write
+  local.properties first). SOURCE: filesystem + wrapper-dir inspection. CONFIDENCE: VERIFIED.
+- FACT: `tools/realtime/measure_true_path_rtt.py` mechanics verified via loopback smoke:
+  30/30 received, loss 0.0% (loopback RTT values are meaningless for WAN — only the
+  mechanism is verified). `tools/realtime/run_bitrate_ab.sh` passes `bash -n`; NOT run
+  (lab-only, needs authorization). SOURCE: loopback run + bash -n. CONFIDENCE: VERIFIED
+  (mechanics only).
+- FACT: Git state after session 2m: local HEAD == origin == `30728e1` (repo sync 0/0);
+  uncommitted = 7 .mcqueen files + AGENTS.md + app Kotlin ×3 + drive.py/protocol.py +
+  tests ×2 + inference_rtx.py + untracked {train_temporal_v2.py, measure_true_path_rtt.py,
+  run_bitrate_ab.sh, test_checkpoint_inference.py, sync_calib.py, "context stuff" folder}.
+  Nothing committed (DECISION 013). SOURCE: `git status` + `git rev-parse`. CONFIDENCE: VERIFIED.
+
+## Session 2n (home, 2026-08-15) — freeze lesson, A/B fix, gradle prep
+- FACT: The laptop froze a THIRD time during a single-batch, forward-only, GPU smoke
+  (tiny backbone, batch 8, no backward, RAM guard passed with 5.2 GB available, 180 s
+  alarm) → torch/CUDA execution itself triggers the freeze; DECISION 024: zero torch of
+  any kind on the laptop. SOURCE: observed freeze 2026-08-15 + user mandate.
+  CONFIDENCE: VERIFIED.
+- FACT: `smoke_train_batch.py` (single-batch pipeline smoke: discovery → index → stats →
+  dataset → collate → forward → checkpoint save/reload contract; RAM guard + 180 s alarm,
+  NO backward) is written + py_compile-verified but has NEVER run; first run = 4090
+  pre-flight at lab. SOURCE: py_compile; no execution (DECISION 024). CONFIDENCE:
+  VERIFIED (static only) / run outcome UNVERIFIED.
+- FACT: `run_bitrate_ab.sh` loss computation FIXED: was 100×(1 − frames_rx/SENT pkts)
+  (packets ≠ frames — would print garbage); now 100×(1 − frames_rx/meta=) with an
+  additional assoc_ok/assoc_miss loss column; `bash -n` OK. Receiver logs
+  `VIDEO frames_rx=… assoc_ok=… assoc_miss=…`; sender logs `SENT pkts=… meta=…`. SOURCE:
+  source grep + bash -n. CONFIDENCE: VERIFIED (static).
+- FACT: gradle-9.4.1-bin.zip downloaded to ~/Downloads/ with SHA-256
+  `2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb` (from
+  services.gradle.org); gradle-wrapper.jar (48,966 B) fetched into
+  apps/android/KachowV8/gradle/wrapper/; local.properties (sdk.dir=/home/kartik/Android/Sdk)
+  created (gitignored). SOURCE: downloads + sha256 + ls. CONFIDENCE: VERIFIED.
+- FACT: User decisions (session 2n): dataset recorded at 10 fps (recorder is the offline
+  teleop path — zero impact on the live 30 fps loop; Q14 logs the temporal-rate mismatch);
+  encoders: no work now (wheels stay zeros via NullEncoderSource at record AND inference —
+  consistent train/infer). SOURCE: user answers. CONFIDENCE: VERIFIED (user decision).
+
+## Session 2o (home exit, 2026-08-15) — final re-verification pass
+- FACT: Post-2n verification pass re-confirmed everything: git tree 24 entries (16 M + 8
+  ??), HEAD == origin == `30728e1`; 2n content present in all 6 state files; DECISION
+  023/024 blocks complete; Q13/Q14 present; py_compile all 5 python files OK; `bash -n`
+  OK; gradle-9.4.1-bin.zip SHA-256 `2ab2958f…6cb` == official; wrapper jar 48,966 B;
+  local.properties gitignored; no stray processes; pure-python tests green. SOURCE:
+  command outputs 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: No USB transfer needed for the lab: gradle zip + datasets + ckpt live on the
+  laptop (app builds locally with the laptop's SDK); laptop→RTX transfers = scp over lab
+  LAN; laptop↔Jetson = USB scp on 192.168.55.1. SOURCE: user clarification + env checks.
+  CONFIDENCE: VERIFIED.
+
+## Session 2p (lab departure, 2026-08-15) — report deliverables + final sanity
+- FACT: `~/Downloads/mcqueen_project_report.txt` (2,865 words) and
+  `~/Downloads/mcqueen_project_report_bullets.txt` (450 words) exist on disk; every
+  number in them grep-verified against evidence sources (Aug 11 RTT 29.4/43.1/70.4/75.7
+  @60/60 ACK; Aug 14 loop p50 287.1/p95 504.0, 57,641 frames, 25.4 fps, assoc
+  52,095/3,287, 242,910 pkts; ladder 677/478/277; jitter 281.9 vs 276.8; save path
+  0.96/1.32, 52,100 saved, 90.8%; 160 ms @400 kbps; 709 ms old-hotspot; link RTT 46).
+  Leak-scan clean (no DECISION IDs, no ViReL, no PID, no HH:MM, no credentials).
+  SOURCE: grep of report + evidence files 2026-08-15. CONFIDENCE: VERIFIED.
+- FACT: At final departure check: git tree still 24 entries (16 M + 8 ??), HEAD ==
+  origin == `30728e1`, zero commits, zero stray processes (only pgrep self-match).
+  SOURCE: git status/log + pgrep 2026-08-15. CONFIDENCE: VERIFIED.

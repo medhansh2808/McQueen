@@ -62,6 +62,13 @@ If sources conflict:
 
 ## C. NO FABRICATION
 
+**Home-equipment rule (binding, user mandate 2026-08-15):** HOME always contains ONLY two
+devices: THIS laptop and the user's phone. The Jetson, RTX, camera, power banks, and any
+other hardware NEVER come home. Never assume otherwise; at session end verify the carry list
+is laptop + phone only. Any plan that requires a non-laptop device at home is invalid by
+definition — remote-machine work at home is only possible via established remote-access
+infrastructure (reverse tunnels), never via device presence.
+
 **No-timestamps rule (binding, user mandate 2026-08-14):** day audits
 (`docs/AUDIT_*.md`), error logs (`docs/ERROR_LOG_*.md`), and milestone evidence reports
 (`docs/evidence/*/REPORT.md`) must NEVER contain clock timestamps (e.g. `21:41`, `20:17–21:26`).
@@ -347,7 +354,8 @@ At the beginning of substantial work:
 6. inspect Git status
 7. inspect relevant project documentation
 8. inspect relevant code
-9. only then plan changes
+9. recreate the todo list from `.mcqueen/CURRENT_TASK.md` (see R) — before any substantive work
+10. only then plan changes
 
 Do not assume previous conversational context is still accurate.
 
@@ -390,3 +398,42 @@ Do not hard-code assumptions about DeepSeek, GPT, Ollama, OpenAI, or any particu
 provider. The agent's behavior must come from AGENTS.md, repository evidence, durable context,
 tests, and actual tool capabilities. The underlying AI model may change without changing
 McQueen's engineering contract.
+
+---
+
+## R. TODO LIST DISCIPLINE (binding, user mandate 2026-08-15)
+
+The todo list is the human's live view of agent work — it must always exist, always be
+accurate, and never disappear mid-session.
+
+1. **Always create one before work, no exceptions.** Every session — planning, building,
+   coding, researching, debugging, testing, state-file work, or even a single trivial
+   task — opens a todo list FIRST, with one detailed, actionable item per distinct task.
+   Generic placeholders (e.g. "implement feature") are forbidden; state-file updates,
+   verification, and commit-related items are todo items too.
+2. **Update in real time, not in batches.** Exactly one item is `in_progress` at a time;
+   mark it `completed` the moment it is actually done; add or cancel items as discoveries
+   change the plan. Never let the list drift from the task actually being performed.
+3. **Keep it visible while working.** Never mark the final item `completed` until the
+   session's work is genuinely wrapped up (keep a trailing verification/state-file item).
+   CORRECTION 2026-08-15: a fully-completed list does NOT reliably auto-hide in the TUI
+   (known opencode bug #30382 — completed items linger on screen); the agent must never
+   rely on auto-hide — see rule 6.
+4. **Session scope.** The list is session-scoped UI state; a fresh session starts with
+   none. At session start (see N), recreate the list from `.mcqueen/CURRENT_TASK.md`
+   before any substantive work.
+5. **End of session.** Mark all items `completed` only after final verification AND the
+   `.mcqueen` state-file updates (see O) are done; record the wrap-up in SESSION_LOG.
+6. **10-second disappearance (binding, user mandate 2026-08-15).** The moment the last
+   item of a todo list is completed, the list must be gone from the human's screen within
+   ~10 seconds. If any new request or task follows (including a question answered with
+   tool work), create the new task's todo list FIRST, instantly replacing the completed
+   one; at genuine session end, completing the final item closes the session list. A
+   completed list still visible while the conversation continues is a contract violation.
+7. **Fresh list per request (binding, user mandate 2026-08-15).** Every new user message
+   that starts any task — including quick verifications, single checks, or trivial
+   questions needing tools — opens a fresh todo list before the first tool call. The
+   human must never see a previous task's items while a new task is being performed.
+   Violation incident 2026-08-15 (push-verification question answered with zero todo
+   list) is what this rule exists to prevent. AGENTS.md is followed by reading, NOT
+   enforced by tooling — obedience at every step is mandatory.

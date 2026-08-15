@@ -38,6 +38,31 @@ Drive-JEPA ViT second) trained from demos that drives autonomously from live cam
 - **Laptop**: dev/coding/Git/SSH/replay only — NOT part of runtime.
 - **Phone (KACHOW)**: teleop, E-stop/takeover, AUTO authorization.
 
+## Current session state (2026-08-15 — session 2s: 5G test answered + full cleanup)
+
+**All software de-risk DONE + verified.** Read SESSION_LOG 2r/2s, AGENT_STATE 2r/2s,
+CURRENT_TASK 2s. Summary:
+
+- CPU rehearsal training on RTX (neighbor GPU job untouched): `rehearsal_temporal.pt` (36 MB,
+  best_val 3.02, tiny backbone). Inference chain verified: 10/10 + 18/18, `--checkpoint` CPU
+  6.59 ms/frame. KACHOW APK BUILT (install on hold). Full WAN loop via STUN punch verified
+  (p50 276.5 ms, direct UDP; dead-cloudflared/stale-URL blocker FIXED). Bitrate A/B done
+  (p50 stable 270-280 ms across 150/300/400).
+- **Jio 5G test (session 2s): VERIFIED NO improvement** — p50 ~231-237 ms on the 5G++ spot
+  (≈ stable 4G), p95 worse (~1239 ms from mode-shifting). <100 ms NOT reached via 5G on this
+  phone; queueing across the path is the wall. Evidence: `docs/evidence/2026-08-15/5g/`.
+- **Cleanup COMPLETE**: sender/wrapper/receiver stopped, cron removed, `/home/sravjti/mcqueen_5g/`
+  deleted, `mcqueen-edge.service` ACTIVE on Jetson, cloudflared tunnel up
+  (`carlo-booth-austin-pics.trycloudflare.com`) for next-session broker. Git: still `30728e1`,
+  zero commits (DECISION 013).
+- **Jetson facts learned**: `/tmp` is tmpfs (wiped on reboot); `mcqueen-edge.service` grabs
+  `/dev/video0` at boot; unanchored pkill in ssh cleanup kills the cleanup shell (F7-class).
+- **IMMEDIATE NEXT**: propose Q13 (receiver `--inference real` wired to the tiny ckpt —
+  separate approval); PPGeo training when neighbor GPU job (PID 744309, grpo-gsm8k-output)
+  finishes; optional checkpoint copy-back to laptop `data/checkpoints/`; user's hardware path
+  unchanged (gearbox → Q1 probe → 20-lap dataset). Latency: pacing/320×240 = approved flags,
+  future work; LAN-link demo day = the practical <100 ms path; re-punch trick validation pending.
+
 ## Realtime target
 <100 ms end-to-end is a TARGET, NOT a proven result. Proven: direct-WAN UDP control return
 60/60 ACKs p50 43.1 ms / p95 70.4 ms (2026-08-11). **FULL LOOP measured on separate WAN
@@ -56,21 +81,28 @@ capture_mono_ns` on Jetson clock; newest-frame-wins; benchmark-v2 reports stages
 (SIGNALING_P2P … FULL_LOOP_LATENCY) with n/p50/p95 — see docs/evidence/MILESTONE_TEMPLATE.md.
 
 ## Current Git state
-Branch `jetson-nano`. Local HEAD = `6632913`; **origin/jetson-nano is 1 commit AHEAD**
-(`57561db` "actaul audit", user web-pushed 2026-08-14 00:17 — only edits
-docs/AUDIT_2026-08-13.md; local working copy has its OWN uncommitted AUDIT edit — reconcile
-at the first commit). **DECISION 013 (binding): NOTHING committed or pushed until
-hardware-verified.** All 2026-08-14 work (home prep H1–H5 + lab fixes F7/F8/F9 in
-run_rtp_wan_test.sh) is uncommitted/untracked (full list in CURRENT_TASK.md); it rides along
-in the FIRST hardware-verified commit. Remote: github.com/medhansh2808/McQueen.git.
-**GITHUB RESTRUCTURE PLANNED (user-approved, awaiting GO — NOT executed):** tag
-`pre-purge-2026-08-14`, reconcile `57561db` (local AUDIT wins), branch-only purge of
-`legacy/` (esp32, uno_q_previous, laptop_logger, dataset_logging, oakd) +
-`hardware/cad/oakdmount.stl` (52 files; history is the backup — user chose git-history
-over a local backup folder), commit all pending work, push. New BINDING rule AGENTS.md §J:
-GitHub updates = simple + functional + maximally reproducible (user mandate). Future task:
-fresh-machine reproducibility (runbook, pinned deps, F7/F8/F9 fixes, checkpoint doc,
-cloudflared, KACHOW build) — full detail in CURRENT_TASK.md FUTURE WORK.
+Branch `jetson-nano`. HEAD == origin == `30728e1` (repo sync 0/0). **FIRST HARDWARE-VERIFIED
+COMMIT PUSHED: `8f35564`** (origin `57561db..8f35564`). It includes: reconcile of origin
+`57561db` (local AUDIT version won), the 52-file branch-only purge (`legacy/{esp32,
+uno_q_previous,laptop_logger,dataset_logging,oakd}/` + `hardware/cad/oakdmount.stl`), all
+H1–H5 prep, lab fixes, the 14-file milestone evidence, AUDIT/ERROR_LOG 08-14, and state
+files with passwords STRIPPED (AGENTS.md §H). A SECOND purge `30728e1` removed
+`robot/uno_q/` (9 files — pre-Jetson Uno Q STM32/OAK-D project; `robot/jetson_nano/` KEPT
+as current). **Uncommitted after session 2m:** 7 .mcqueen files + AGENTS.md + app Kotlin
+×3 + drive.py/protocol.py + tests ×2 + inference_rtx.py + untracked {`train_temporal_v2.py`,
+`measure_true_path_rtt.py`, `run_bitrate_ab.sh`, `test_checkpoint_inference.py`,
+`smoke_train_batch.py` (lab-only, DECISION 024), `sync_calib.py` (untested — never
+commit), "context stuff" folder (never commit)}; `local.properties` + gradle wrapper jar
+are gitignored/untracked build inputs. State-file
+updates ride the next hardware-verified commit (DECISION 013).
+Remote: github.com/medhansh2808/McQueen.git.
+**GITHUB RESTRUCTURE DEFERRED (run ONLY on user trigger "do github restructure rn"):** the
+purge + first commit + push are DONE; what remains is the recovery tag
+`pre-purge-2026-08-14` at `57561db` (pre-purge point; history keeps everything either way)
++ any further §J simplification. New BINDING rule AGENTS.md §J: GitHub updates = simple +
+functional + maximally reproducible (user mandate). Future task: fresh-machine
+reproducibility (runbook, pinned deps, F7/F8/F9 fixes, checkpoint doc, cloudflared, KACHOW
+build) — full detail in CURRENT_TASK.md FUTURE WORK.
 
 ## Important machines / paths
 - Laptop repo: `/home/kartik/McQueenWork/McQueen`; torch env:
@@ -86,7 +118,8 @@ cloudflared, KACHOW build) — full detail in CURRENT_TASK.md FUTURE WORK.
 - **Passwords: user-provided, live ONLY in the transient helper `/tmp/mcq_askpass.sh`
   (SSH_ASKPASS_REQUIRE=force) on the laptop — NEVER in repo files (AGENTS.md §H); recreate
   the helper or ask the user if gone.**
-- **UNTOUCHABLE on RTX:** PID 490867 `python train.py`, cwd `/home/junior/ViReL/Tasks/vlmgrpo`
+- **UNTOUCHABLE on RTX:** PID 575347 `python train.py` (current 2026-08-14 evening check;
+  supersedes earlier PID 490867), cwd `/home/junior/ViReL/Tasks/vlmgrpo`
   (VLM-GRPO training, NOT McQueen's). Never pause/kill/modify (DECISION 014 + user hard rule).
 - PPGeo ResNet-34 checkpoint (OUTSIDE repo): `~/Downloads/mcqueen_ppgeo/ppgeo_visual_encoder.pth`
   (87.3 MB; Google Drive id `1GAeLgT3Bd_koN9bRPDU1ksMpMlWfGXbE`, BaiduYun code `itqi`).
@@ -121,7 +154,8 @@ broker removal via manual peer exchange (~1.5–2.5 h; punch_peer.py tooling exi
 
 **2026-08-14 session end:** ALL test procs STOPPED (sender/receiver/broker/cloudflared —
 precise PID kills, verified). Recordings stay on disk (save_test_201750/, jitter25_204850/).
-No GitHub today (DECISION 013). **BINDING at-home rule (user):** ANY code/script change at
+(superseded same evening: GitHub organize done — first hardware-verified commit `8f35564`
+pushed; see Git state above). **BINDING at-home rule (user):** ANY code/script change at
 home must be PROPOSED and await explicit approval — including fixing F7/F8/F9 in the run
 script (they are still in it; the documented manual-start procedure is the current fallback).
 
@@ -141,12 +175,40 @@ clock timestamps (dates + IP:ports OK). (3) GitHub restructure PLANNED (purge le
 52 files branch-only, reconcile `57561db`, tag `pre-purge-2026-08-14`, commit all pending
 work, push; history = backup; EXCLUDE sync_calib.py + context folder) — awaiting user GO.
 (4) **FINALIZED next-lab scope = transport/latency ONLY:** TRUE PATH RTT FIRST (Jetson pings
-RTX public IP, NOT Cloudflare — decisive floor), then 320×240 @ 150 kbps + packet pacing if
-worth it; constants: 30 fps, 50 ms jitter, CPU decode/infer, no retransmission.
+RTX public IP, NOT Cloudflare — decisive floor), then bitrate A/B (150/300/400 ×2, loss-logged;
+150 NOT final — DECISION 019) + 320×240 + pacing only if justified; constants: 30 fps, 50 ms
+jitter, CPU decode/infer, no retransmission.
 (5) **NO TRAINED POLICY EXISTS** — only PPGeo encoder (features, NOT actuators) + 8 old demos
 (not real driving data per user); L1 real inference gated until real dataset → train → L0
 green → approval. (6) REAL SPEC: camera→actuator as fast as possible on real roads; <100 ms
 was aspirational; Jio 5G ideal (RTT ~10–30 ms → comfortably <100 ms).
+
+**Session 2i (home planning, evening):** DECISION 019 locked — (a) BROKER POLICY: brokerless
+for lab AND road; fallback = RE-PUNCH TRICK (NAT mappings are destination-independent: RTX
+hole stays alive via keepalives; Jetson re-STUNs → NEWCAND to RTX's known endpoint → punch).
+No broker rewrite, no aiohttp, no cloudflared. Lab validation step added (kill hole → rebind
+→ recover). Both-holes-dead = future task (fix when faced). (b) RE-ENGAGE: one-tap RESUME
+button (Kachow) → `R` packet → gate `resume_required` cleared → neutral-before-motion applies;
+watchdog stops need it, manual E-stop doesn't. Gate implemented + laptop-tested (protocol `R`
++ `resume_required`); app button code-only (build/verify at lab). (c) BITRATE A/B added to
+lab plan (400 kbps hit p50 ~160 ms on the new network vs 224–287 at 150; 400-run loss was
+NEVER LOGGED — gap; A/B must log loss per run). broker.py removal from repo rides the next
+hardware-verified commit ONLY if the re-punch validation passes.
+
+**Session 2j (home, 2026-08-15):** DECISION 020 + AGENTS.md §R — binding TODO LIST
+DISCIPLINE (user mandate, strict, no exceptions): every session opens a detailed todo list
+first, updated in real time (one `in_progress`), never fully completed until the session is
+wrapped (a fully-completed list auto-collapses from the human's screen); §N gained the
+recreate-from-CURRENT_TASK step. All sessions now start with a live visible todo list.
+
+**Session 2l (home, 2026-08-15):** 2-WEEK SPRINT (DECISION 022) — demo bar (floor = track
+autonomy, stretch = openpilot-style generalization), FREEZE-HARDWARE rule (steering servo
+locked until post-demo), CARE PROTOCOL (sacred list; new-files-first; tests after every
+change; no commits; no unauthorized remote), training compute = RTX at training time
+(user confirms ViReL done), dataset env questions deferred to recording day. Hardware
+critical path = user (gearbox/differential/encoder motors → Q1 probe pass → 20-lap
+dataset); agent runs parallel software de-risk (training rehearsal, Kachow build,
+transport scripts). Full details: CURRENT_TASK.md + DECISIONS.md.
 
 ## Verified facts
 See `.mcqueen/VERIFIED_FACTS.md` (each fact has SOURCE + confidence). Highlights: dataset-v2 +
@@ -156,26 +218,31 @@ F1 sender bug fixed + packetization unit-tested (2026-08-13); H1–H5 prep verif
 ## Unresolved questions
 See `.mcqueen/OPEN_QUESTIONS.md`: Q1 motor-PWM probe (NOT yet run — tomorrow with a real
 phone), Q2b rtp_ts/frames_rx (RESOLVED — rtp_ts advances, frames_rx>0, exact match, full
-loop measured), **Q9 broker removal (DECIDED — remove via manual peer exchange, DEFERRED to
-tomorrow; estimates ~1.5–2.5 h)**, Q11 sender ws no-reconnect (OPEN — becomes moot once the
-broker is gone), Q10 GPU contention (RESOLVED: ViReL untouchable, CPU path), Q4/Q5 still open.
+loop measured), **Q9 broker removal (SUPERSEDED by DECISION 019 — brokerless via the
+re-punch trick, no broker rewrite/cloudflared; lab validation step pending)**, Q11 sender ws
+no-reconnect (OPEN — moot once brokerless design rides the hardware-verified commit),
+Q10 GPU contention (RESOLVED: ViReL untouchable, CPU path), Q4/Q5 still open.
 
-## Next action (next lab — FINALIZED scope: transport/latency ONLY; machines IDLE, all procs stopped)
-1. Deploy + start the pipeline (broker/cloudflared → receiver venv python → sender;
-   manual-start procedure — run_rtp_wan_test.sh still has F7/F8/F9 unless user approves
-   fixing them; at-home rule: ask + wait before ANY change).
+## Next action (next lab — FINALIZED scope, DECISION 019; machines IDLE, all procs stopped)
+1. Deploy repo sender + `kachow_probe.py` to Jetson clone (drift fix — clone at `61a3c91`,
+   kachow_probe STALE) + recreate askpass helper `/tmp/mcq_askpass.sh`; machines-idle check.
+   Pipeline start: manual-start procedure — run_rtp_wan_test.sh still has F7/F8/F9 unless
+   user approves fixing them; at-home rule: ask + wait before ANY change.
 2. **TRUE PATH RTT FIRST (~10 min, decisive):** Jetson pings the RTX's ACTUAL public IP
-   (NOT Cloudflare). ≈46 ms → floor ≈60 ms, <100 ms fightable on 4G, easy on Jio 5G;
-   100+ ms → link is the wall.
-3. Queueing attacks if floor says worth it: 320×240 @ 150 kbps + packet pacing.
-4. Broker removal (manual peer exchange; punch_peer.py exists) if time allows (~1.5–2.5 h).
-5. Live KACHOW probe: `tools/realtime/kachow_probe.py` (REPO version — Jetson clone STALE)
+   (`14.139.108.62`, NOT Cloudflare — yesterday's 46 ms was to 1.1.1.1). ≈46 ms → floor
+   ≈60 ms, our ~200 ms is queueing to attack; 100+ ms → link is the physics ceiling.
+3. **BITRATE A/B (DECISION 019):** 150 / 300 / 400 kbps ×2 cycles, back-to-back same
+   network; per-run loss + frames_rx + p50/p95 LOGGED; 150 is NOT final. 320×240 + pacing
+   only if RTT + A/B justify.
+4. **RE-PUNCH TRICK VALIDATION (~15 min):** kill Jetson hole mid-session → rebind →
+   NEWCAND recovery. Pass = brokerless fallback real; fail = reopen broker question.
+5. Live KACHOW probe: `tools/realtime/kachow_probe.py` (REPO version — deployed in step 1)
    → expect exit 0 (closes Q1); exit 3 → drive forward AND reverse, re-run.
 6. If healthy: RECORD A REAL DATASET (the collection the whole inference chain waits on) →
    `tools/realtime/process_recording.sh` (must print PASSED) → LeRobot conversion.
 7. First hardware-verified commit of ALL pending prep + lab work (DECISION 013) incl.
-   docs/ERROR_LOG_2026-08-14.md + filed evidence; reconcile origin `57561db` (AUDIT doc
-   local-vs-remote).
+   docs/ERROR_LOG_2026-08-14.md + filed evidence + RESUME gate code; **broker.py removal
+   rides it ONLY if step 4 passed**.
 8. L1 (`--inference real`, PPGeo) ONLY after: real dataset → policy TRAINED → L0 green →
    user approval. NO trained policy exists yet (only PPGeo encoder + 8 non-real demos).
    Checkpoint to `data/checkpoints` + `MCQUEEN_PPGEO_CKPT`.
@@ -183,3 +250,41 @@ broker is gone), Q10 GPU contention (RESOLVED: ViReL untouchable, CPU path), Q4/
 **Constants (confirmed):** 30 fps, 50 ms jitter buffer (25 ms identical — keep margin), CPU
 decode + CPU inference, newest-frame-wins, no retransmission, 250 ms timeout. **Real spec:**
 camera→actuator as fast as possible on real roads; <100 ms aspirational; Jio 5G ideal.
+
+## Latest session (2p, 2026-08-15) — report deliverables done; heading to lab
+- `~/Downloads/mcqueen_project_report.txt` (2,865 words) + `mcqueen_project_report_bullets.txt`
+  (1 page) created for partner's PPT: full honest status, transport deep dive, all numbers
+  fact-checked against evidence, sanitized (no decision IDs/shared-GPU job/laptop
+  freezes/credentials/clock timestamps). NOT in repo; nothing committed.
+- Sanity re-passed: git 24 entries, HEAD==origin==`30728e1`, no stray processes.
+- **On arrival ("im at lab")**: LAB mode; first gate = ViReL PID 575347 confirmation;
+  recreate `/tmp/mcq_askpass.sh`.
+- Lab order: smoke pre-flight → train → checkpoint → deploy inference_rtx.py →
+  `--checkpoint` smoke → deploy sender/kachow_probe to Jetson clone (`61a3c91`) → RTT
+  probe (`14.139.108.62`, port-forward 5955) → A/B → app build → propose receiver
+  `--inference real` (Q13).
+
+## Latest session (2o, 2026-08-15) — home phase COMPLETE; leaving for lab
+- All 2n claims re-verified (git 24 entries, HEAD==origin==`30728e1`, state files
+  complete, compiles green, gradle SHA verified, no strays). No USB needed: gradle zip on
+  laptop; all transfers via SSH (laptop→RTX scp over lab LAN; laptop↔Jetson USB scp).
+- **On arrival ("im at lab")**: LAB mode; first gate = ViReL PID 575347 confirmation;
+  recreate `/tmp/mcq_askpass.sh`.
+- Lab order: smoke pre-flight → train → checkpoint → deploy inference_rtx.py →
+  `--checkpoint` smoke → deploy sender/kachow_probe to Jetson clone (`61a3c91`) → RTT
+  probe (`14.139.108.62`, port-forward 5955) → A/B → app build → propose receiver
+  `--inference real` (Q13).
+
+## Latest session (2n, 2026-08-15, HOME) — ZERO torch on laptop; lab plan locked
+- **DECISION 024 (binding, strengthens 023):** NO torch execution of any kind on the
+  laptop — 3rd freeze happened on the lightest GPU smoke. Home = py_compile +
+  pure-python tests only. `smoke_train_batch.py` is the lab 4090 pre-flight.
+- Done: A/B loss fix (frames-based + assoc column), gradle-9.4.1-bin.zip (SHA verified) +
+  wrapper jar + local.properties (gitignored), 10 fps recording decision + Q14
+  (temporal mismatch), encoders-zeros decision (no work).
+- **NEXT at lab (in order):** confirm ViReL done → `smoke_train_batch.py` on 4090 →
+  train rehearsal (converted datasets: scp 305 MB or re-convert 57 MB spools; RTX lerobot
+  version must be 0.6.0) → checkpoint → deploy new `inference_rtx.py` + `--checkpoint`
+  smoke → RTT probe (`14.139.108.62`, confirm port-forward 5955) → bitrate A/B (fixed
+  loss) → app build (gradle dist from USB) → propose receiver `--inference real`
+  integration (Q13, separate approval) → TEST PLAN below.

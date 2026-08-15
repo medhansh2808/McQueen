@@ -8,6 +8,7 @@ TOKEN = "rc-car"
 PACKET_HELLO = "H"
 PACKET_COMMAND = "C"
 PACKET_EMERGENCY = "E"
+PACKET_RESUME = "R"
 
 MAX_STEERING = 1000
 MAX_THROTTLE = 1000
@@ -39,6 +40,7 @@ def parse_phone_packet(payload):
             PACKET_HELLO,
             PACKET_COMMAND,
             PACKET_EMERGENCY,
+            PACKET_RESUME,
         ):
             return None
 
