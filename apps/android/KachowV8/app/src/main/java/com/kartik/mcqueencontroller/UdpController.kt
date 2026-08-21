@@ -29,7 +29,7 @@ class UdpController(
     private val sendLock = Any()
     private val running = AtomicBoolean(false)
 
-    private var socket: DatagramSocket? = null
+    @Volatile private var socket: DatagramSocket? = null
     private var remoteAddress: InetSocketAddress? = null
     private var scheduler: ScheduledExecutorService? = null
     private var receiverExecutor = Executors.newSingleThreadExecutor()
@@ -53,6 +53,7 @@ class UdpController(
     @Volatile private var lastStatusAtMs = 0L
     @Volatile private var linkReportedConnected = false
     @Volatile private var lastNeutralisingReported = false
+    @Volatile private var sessionLive = false
 
     fun start(ipAddress: String, port: Int = Protocol.DEFAULT_PORT) {
         stop(sendEmergency = false)
@@ -84,6 +85,7 @@ class UdpController(
             brakeHeld = false
             lastStatusAtMs = 0L
             linkReportedConnected = false
+            sessionLive = false
         }
 
         running.set(true)
@@ -105,6 +107,7 @@ class UdpController(
             brakeHeld = false
             lastStatusAtMs = 0L
             linkReportedConnected = false
+            sessionLive = false
         }
         reportNeutralising(false)
         listener.onLinkChanged(false, "Taking control…")
@@ -264,13 +267,19 @@ class UdpController(
 
         val safeSteering = shapedSteering.coerceIn(-Protocol.MAX_STEERING, Protocol.MAX_STEERING)
         val seq = nextSequence()
+        // While the Jetson reports FAILSAFE, hold neutral until it confirms
+        // LIVE again. This satisfies the Jetson's neutral-first rule and
+        // clears the safety state automatically after a takeover burst or a
+        // brief link gap, instead of getting stuck waiting for manual RESUME.
+        val effectiveSteering = if (sessionLive) safeSteering else 0
+        val effectiveThrottle = if (sessionLive) finalThrottle else 0
         sendRaw(
             Protocol.command(
                 session = localSession,
                 sequence = seq,
                 timestampMs = now,
-                steering = safeSteering,
-                throttle = finalThrottle,
+                steering = effectiveSteering,
+                throttle = effectiveThrottle,
                 motorEnabled = motorEnabled,
             ),
         )
@@ -358,46 +367,64 @@ class UdpController(
     }
 
     private fun sendEmergencyBurst(count: Int) {
-        val localSocket = socket ?: return
-        val target = remoteAddress ?: return
         val localSession = synchronized(stateLock) { sessionId }
 
         repeat(count) {
             val sequenceNumber = nextSequence()
             val raw = Protocol.emergency(localSession, sequenceNumber, System.currentTimeMillis())
-            synchronized(sendLock) {
-                runCatching {
-                    val bytes = raw.toByteArray(Charsets.US_ASCII)
-                    localSocket.send(DatagramPacket(bytes, bytes.size, target))
-                }
-            }
+            sendPacket(raw, reportError = false)
             if (it < count - 1) Thread.sleep(15L)
         }
     }
 
     fun sendResume() {
-        val localSocket = socket ?: return
-        val target = remoteAddress ?: return
         val localSession = synchronized(stateLock) { sessionId }
         val sequenceNumber = nextSequence()
         val raw = Protocol.resume(localSession, sequenceNumber, System.currentTimeMillis())
-        synchronized(sendLock) {
-            runCatching {
-                val bytes = raw.toByteArray(Charsets.US_ASCII)
-                localSocket.send(DatagramPacket(bytes, bytes.size, target))
-            }.onFailure { listener.onError("UDP send failed: ${it.message}") }
-        }
+        sendPacket(raw, reportError = true)
     }
 
     private fun sendRaw(raw: String) {
-        val localSocket = socket ?: return
+        sendPacket(raw, reportError = false)
+    }
+
+    private fun sendPacket(raw: String, reportError: Boolean) {
         val target = remoteAddress ?: return
         synchronized(sendLock) {
-            runCatching {
+            var localSocket = socket ?: return
+            var attempts = 0
+            var sent = false
+            while (attempts < 2 && !sent) {
                 val bytes = raw.toByteArray(Charsets.US_ASCII)
-                localSocket.send(DatagramPacket(bytes, bytes.size, target))
-            }.onFailure { listener.onError("UDP send failed: ${it.message}") }
+                sent = runCatching {
+                    localSocket.send(DatagramPacket(bytes, bytes.size, target))
+                }.isSuccess
+                if (!sent) {
+                    val recreated = recreateSocket()
+                    if (recreated != null) {
+                        localSocket = recreated
+                    }
+                }
+                attempts += 1
+            }
+            if (!sent && reportError) listener.onError("UDP send failed")
         }
+    }
+
+    private fun recreateSocket(): DatagramSocket? {
+        val newSocket = runCatching {
+            DatagramSocket().apply {
+                soTimeout = 120
+                reuseAddress = true
+            }
+        }.getOrNull() ?: return null
+
+        synchronized(stateLock) {
+            val old = socket
+            socket = newSocket
+            runCatching { old?.close() }
+        }
+        return newSocket
     }
 
     private fun receiveLoop() {
@@ -412,11 +439,16 @@ class UdpController(
                 val currentSession = synchronized(stateLock) { sessionId }
                 if (status.session != currentSession) continue
                 lastStatusAtMs = System.currentTimeMillis()
+                sessionLive = !status.failsafe
                 listener.onStatus(status)
             } catch (_: SocketTimeoutException) {
                 // Expected so the loop can check the running flag.
             } catch (error: Exception) {
-                if (running.get()) listener.onError("UDP receive failed: ${error.message}")
+                // Socket was replaced by sendPacket's recovery; old socket is
+                // closed so just re-read the current one on the next pass.
+                if (!running.get()) break
+                if (socket !== localSocket) continue
+                listener.onError("UDP receive failed: ${error.message}")
             }
         }
     }

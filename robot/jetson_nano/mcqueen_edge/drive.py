@@ -97,12 +97,20 @@ class DriveController:
         if packet_type != "C":
             return "invalid"
 
-        if self.resume_required:
-            return "resume-required"
-
         steering = int(packet["steering"])
         throttle = int(packet["throttle"])
         motor_enabled = bool(packet["motor_enabled"])
+
+        if self.resume_required:
+            # A neutral command implicitly resumes: the app auto-sends
+            # (0,0) while FAILSAFE, so the gate clears by itself after a
+            # link gap instead of requiring a manual RESUME. Falling
+            # through lets this same neutral re-arm the session. Non-neutral
+            # commands are still refused until the gate clears.
+            if steering == 0 and throttle == 0:
+                self.resume_required = False
+            else:
+                return "resume-required"
 
         # Match the proven UNO-Q behavior: every new phone session must first
         # send a neutral command before motion is accepted.

@@ -64,3 +64,27 @@ when the drivetrain is reassembled; do not infer wiring from old UNO-Q setup not
 
 Run procedures live in `tools/realtime/` (sender/receiver/bench scripts); see
 `docs/full_loop_benchmark_v2.md` for the measurement contract.
+
+## Free model providers (opencode)
+
+### 1. NVIDIA NIM
+
+- **API Key Storage**: Stored securely in `auth.json` managed by opencode (never committed to or stored in the repository).
+- **Configuration Path**: `~/.config/opencode/opencode.jsonc`
+- **Supported Model IDs**:
+  - `deepseek-ai/deepseek-v4-flash-0731` (default)
+  - `z-ai/glm-5.2`
+  - `nvidia/nemotron-3-ultra-550b-a55b`
+  - `nvidia/nemotron-3.5-lightning-30b-a3b`
+  - `stepfun-ai/step-3.7-flash`
+  - `thinkingmachines/inkling`
+- **Usage & Catalog Notes**:
+  - The free tier is burst-limited, subject to HTTP 429 rate limits and has no SLA guarantees.
+  - The `models.dev` catalog is stale; always refer to and use the live NVIDIA NIM catalog for current model availability.
+
+### 2. Google AI Studio Fallback
+
+- **Model ID**: `gemini-3.6-flash`
+- **Rate Limit / Quota**: ~1500 requests/day
+- **Usage Strategy**: Fallback provider used when NVIDIA NIM is saturated or rate-limited.
+

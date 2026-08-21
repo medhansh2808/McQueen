@@ -44,6 +44,13 @@ Canonical raw format: `mcqueen-driving-spool-v2`.
 
 See `docs/dataset_schema_v2.md`.
 
+## Reproducing the overnight training run
+
+The chestnut (comma big_driving_supercombo) LoRA experiment on DonkeySim is fully
+reproducible: model fetch + conversion, data pipeline, evaluation recipe, results and
+comparisons are in `docs/TRAINING_REPRO_GUIDE.md` (includes the exact sha256 of the
+base model and the public dataset links).
+
 ## Project status
 
 Proof levels are intentionally separated; see the docs index (`docs/README.md`) for

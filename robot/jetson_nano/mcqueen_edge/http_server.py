@@ -166,6 +166,14 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(self.runtime_state.snapshot())
             return
 
+        if path == "/api/log/start":
+            self._json(self.runtime_state.start_recording())
+            return
+
+        if path == "/api/log/stop":
+            self._json(self.runtime_state.stop_recording())
+            return
+
         self._json(
             {
                 "ok": False,

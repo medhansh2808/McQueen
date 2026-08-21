@@ -341,6 +341,15 @@ left (current verified state, pending work, blockers, exact NEXT ACTION, Git sta
 state files are the project's master memory and the anti-hallucination record; keep them
 curated and precise, not verbose dumps.
 
+**State-file growth control (binding, user mandate 2026-08-15, DECISION 028):** the
+startup files must never bloat into archive size — a long context degrades model accuracy
+(mid-context content gets weak attention; stale claims compete with evidence). Thresholds:
+if `CURRENT_TASK.md` exceeds ~300 lines or `VERIFIED_FACTS.md` exceeds ~700 lines, run a
+compress-archive pass: move superseded/older content to `docs/state-archive/`, keep the
+live files lean digests. `SESSION_LOG.md` is the append-only history and is NOT part of
+the startup read set — it may grow; it is never read fully at session start (detail is
+fetched on demand by grep). The state files are the index, not the encyclopedia.
+
 ---
 
 ## N. SESSION START
@@ -375,6 +384,11 @@ Record: what changed, what was tested, exact test results, what remains, blocker
 files, Git state, and next recommended action. Leave the files handoff-grade (see M): a
 fresh agent with no conversational memory must be able to start from exactly where this
 session left the project. Skipping this step for a small task is not allowed.
+
+**State-mirror push (binding, DECISION 028):** after the state files are handoff-grade, run
+`~/mcqueen-remote/sync_state.sh` so the PRIVATE mirror repo `kt-fr/mcqueen-state` is current.
+"State files pristine" means BOTH local `.mcqueen/` AND the GitHub mirror are up to date.
+One-way mirror; main-repo push rules (DECISION 013) are unchanged.
 
 ---
 
@@ -437,3 +451,11 @@ accurate, and never disappear mid-session.
    Violation incident 2026-08-15 (push-verification question answered with zero todo
    list) is what this rule exists to prevent. AGENTS.md is followed by reading, NOT
    enforced by tooling — obedience at every step is mandatory.
+8. **Every-message maintenance (binding, user mandate 2026-08-15, evening).** EVERY user
+   message — question, one-liner, clarification, or command — is preceded by a todo-list
+   update that reflects that message's work before any tool call or substantive answer:
+   a fresh list for new tasks, or real-time status edits for continuations of the current
+   task. Never answer with tool work (or a substantive response) without first updating
+   the todo list. The list is the human's live view of agent work; drift or a missing
+   update on ANY message is a contract violation. Violation incidents 2026-08-15 (multiple
+   messages answered with zero todo maintenance) are what this rule exists to prevent.

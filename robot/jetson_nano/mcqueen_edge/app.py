@@ -20,6 +20,7 @@ class EdgeApp:
         enable_recorder=False,
         recorder_root="data/spool",
         camera_device=None,
+        encoder_source=None,
     ):
         self.backend = (
             backend if backend is not None else MockDriveBackend()
@@ -55,6 +56,7 @@ class EdgeApp:
                 drive_controller=self.teleop.drive,
                 root_dir=recorder_root,
                 camera_device=camera_device,
+                encoder_source=encoder_source,
             )
 
     def start(self, timeout=2.0):
@@ -166,8 +168,32 @@ def parse_args(argv=None):
         default=None,
         help="override stable Lenovo webcam device path",
     )
+    parser.add_argument(
+        "--encoder-pins",
+        default="11 13",
+        help="GPIO BOARD pins for wheel encoder A and B (default: 11 13; "
+        "must NOT overlap motor AIN1/AIN2 pins 29/31; verify wiring first)",
+    )
 
     return parser.parse_args(argv)
+
+
+def build_encoder_source(args):
+    """GPIO quadrature encoder, or None (null encoder) when unavailable."""
+    try:
+        from .gpio_encoder_source import GpioEncoderSource
+
+        pin_a, pin_b = (int(v) for v in args.encoder_pins.split())
+        source = GpioEncoderSource(pin_a=pin_a, pin_b=pin_b)
+        source.start()
+        return source
+    except Exception as exc:
+        print(
+            "WARNING: wheel encoder unavailable ({}); "
+            "recording encoder_valid=False".format(exc),
+            flush=True,
+        )
+        return None
 
 
 def main(argv=None):
@@ -184,6 +210,7 @@ def main(argv=None):
         enable_recorder=args.jetson,
         recorder_root=args.record_root,
         camera_device=args.camera_device,
+        encoder_source=build_encoder_source(args),
     )
 
     app.start()

@@ -26,34 +26,37 @@ def rgb_to_supercombo_yuv(frame_rgb: np.ndarray) -> np.ndarray:
 
 
 class FrozenActionModel(nn.Module):
-
- 
-    ACTION_FINAL_WEIGHT_NAME = "on_policy_model.temporal_hydra.final_layer.action.weight"   # shape [4, 512]
-    ACTION_FINAL_BIAS_NAME = "on_policy_model.temporal_hydra.final_layer.action.bias"         # shape [4]
-    ACTION_SCALE_NAME = "on_policy_model.temporal_hydra.scale_layer.action.scale"               # shape [4]
-
-    @staticmethod
-    def _get_owner_and_attr(root_module: nn.Module, dotted_name: str):
-        """
-        Resolves 'a.b.c' -> (module_a.module_b, 'c'). Handles the flat,
-        no-dot case too (onnx2pytorch registers top-level initializers
-        directly on the root module with underscore-joined names, no
-        actual submodule nesting) -> (root_module, dotted_name).
-        """
-        if "." in dotted_name:
-            module_path, attr = dotted_name.rsplit(".", 1)
-            owner = root_module
-            for part in module_path.split("."):
-                owner = getattr(owner, part)
-            return owner, attr
-        return root_module, dotted_name
+    # Output slice layout of comma's driving_supercombo.onnx (2026 master),
+    # VERIFIED 2026-08-17 from the model's own `output_slices` metadata
+    # (base64-pickled in model-level metadata_props).
+    OUT_SLICES = {
+        "meta": slice(0, 55),
+        "desire_pred": slice(55, 87),
+        "pose": slice(87, 99),
+        "wide_from_device_euler": slice(99, 105),
+        "road_transform": slice(105, 117),
+        "lane_lines": slice(117, 645),
+        "lane_lines_prob": slice(645, 653),
+        "road_edges": slice(653, 917),
+        "lead": slice(917, 1061),
+        "lead_prob": slice(1061, 1064),
+        "hidden_state": slice(1064, 1576),
+        "plan": slice(1576, 2566),
+        "desire_state": slice(2566, 2574),
+    }
+    # comma ModelConstants / drive_helpers (master, VERIFIED 2026-08-17)
+    IDX_N = 33
+    PLAN_WIDTH = 15
+    T_IDXS = [10.0 * ((i / 32.0) ** 2) for i in range(IDX_N)]  # index_function
+    MIN_SPEED = 1.0
+    MIN_STABLE_DELAY = 0.3
 
     def __init__(self, onnx_path: str, converted_state_dict_path: str = None):
         """
-        onnx_path should be the EXTRACTED SUBGRAPH from
-        extract_action_subgraph.py (mcqueen_action_subgraph.onnx), not the
-        full 874-node model — point_policy/off_policy branches were cut,
-        they're not needed and just slow down conversion.
+        Wraps the FULL comma driving_supercombo.onnx (2026 master export:
+        img/big_img/features_buffer/desire_pulse/traffic_convention/action_t
+        -> single flattened 'outputs' tensor). onnx2pytorch conversion;
+        the whole trunk is FROZEN.
         """
         super().__init__()
         onnx_model = onnx.load(onnx_path)
@@ -62,122 +65,84 @@ class FrozenActionModel(nn.Module):
         if converted_state_dict_path is not None:
             self.trunk.load_state_dict(torch.load(converted_state_dict_path))
 
-        # Freeze everything first.
         for p in self.trunk.parameters():
             p.requires_grad = False
-
-        # Find the action-head params by VALUE (not name — onnx2pytorch
-        # doesn't reliably preserve onnx initializer names), using the
-        # exact arrays from the original onnx file's initializers.
-        init_by_name = {init.name: init for init in onnx_model.graph.initializer}
-        target_arrays = {}
-        for onnx_name in (self.ACTION_FINAL_WEIGHT_NAME, self.ACTION_FINAL_BIAS_NAME, self.ACTION_SCALE_NAME):
-            if onnx_name not in init_by_name:
-                raise RuntimeError(
-                    f"{onnx_name} not found in this onnx file's initializers — "
-                    f"did you pass the full model instead of the extracted subgraph, "
-                    f"or did comma rename something? Re-run the initializer dump against this file."
-                )
-            target_arrays[onnx_name] = onnx.numpy_helper.to_array(init_by_name[onnx_name])
-
-        reinitialized = []
-        state_dict = self.trunk.state_dict()
-        name_map = {}   # onnx_name -> matched torch parameter name
-        for onnx_name, onnx_arr in target_arrays.items():
-            best_name, best_diff = None, float("inf")
-            for torch_name, torch_param in state_dict.items():
-                if tuple(torch_param.shape) != tuple(onnx_arr.shape):
-                    continue
-                d = float((torch_param.numpy().astype("float64") - onnx_arr.astype("float64")).__abs__().max())
-                if d < best_diff:
-                    best_diff, best_name = d, torch_name
-            if best_name is None or best_diff > 1e-2:
-                raise RuntimeError(
-                    f"Could not confidently match {onnx_name} to a converted PyTorch "
-                    f"parameter (best candidate: {best_name}, diff={best_diff}). "
-                    f"Print state_dict shapes and compare by hand before proceeding."
-                )
-            name_map[onnx_name] = best_name
-
-        params_by_name = dict(self.trunk.named_parameters())
-        for onnx_name, torch_name in name_map.items():
-            owner, attr = self._get_owner_and_attr(self.trunk, torch_name)
-            shape = target_arrays[onnx_name].shape
-
-            if torch_name in params_by_name:
-                # Rare case: onnx2pytorch already registered it as a real
-                # nn.Parameter. Just re-init and unfreeze in place.
-                p = params_by_name[torch_name]
-                p.requires_grad = True
-            else:
-                # Expected case: onnx2pytorch registered it as a frozen
-                # buffer (constant), since ONNX graphs are inference-only
-                # by default. A buffer is invisible to model.parameters(),
-                # so setting requires_grad on it wouldn't be enough — it
-                # has to be removed from _buffers and re-registered as an
-                # actual nn.Parameter for an optimizer to ever touch it.
-                if attr in owner._buffers:
-                    del owner._buffers[attr]
-                elif attr in owner._parameters:
-                    del owner._parameters[attr]
-                else:
-                    raise RuntimeError(
-                        f"{torch_name} not found as a parameter or buffer on "
-                        f"its owning module — naming assumption broken, print "
-                        f"owner._buffers.keys() / owner._parameters.keys() to debug."
-                    )
-                p = nn.Parameter(torch.empty(shape, dtype=torch.float16), requires_grad=True)
-                owner.register_parameter(attr, p)
-
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p.data)
-            else:
-                nn.init.zeros_(p.data)
-            reinitialized.append(torch_name)
-
-        if not reinitialized:
-            raise RuntimeError(
-                "Matched onnx initializers by value but couldn't re-locate them as "
-                "trainable nn.Parameters on the module tree — print name_map and "
-                "trunk.state_dict().keys() to debug the mismatch."
-            )
-        print("re-initialized + unfrozen (dtype=float16, matching the rest of the graph):", reinitialized)
+        n_params = sum(p.numel() for p in self.trunk.parameters())
+        print(f"frozen trunk: {n_params} params, 0 trainable")
 
     def forward(self, img, big_img, desire_pulse, traffic_convention, action_t, features_buffer):
         """
-        All args match the onnx input shapes. desire_pulse/traffic_convention
-        have no McQueen equivalent — pass zeros for them (see train_frozen_action.py).
+        All args match the real onnx input names/shapes (VERIFIED 2026-08-17
+        against comma master's driving_supercombo.onnx). desire_pulse /
+        traffic_convention / action_t have no McQueen equivalent — pass zeros.
 
         Returns (action, hidden_state, plan_positions):
-          action:         (1, 4) raw curvature+accel — convert with action_to_command_torch()
+          action:         (1, 4) plan-derived [desired_curvature, desired_accel, 0, 0]
+                          — convert with action_to_command_torch().
+                          Built exactly like comma's get_curvature_from_plan /
+                          get_accel_from_plan (master drive_helpers.py).
           hidden_state:   (1, 512) this frame's feature — roll it into next call's
-                          features_buffer (shift the 24-step window, append this at the end)
-          plan_positions: (1, 33, 3) predicted (x, y, z) at 33 future timesteps, from the
-                          FROZEN off_policy_model branch — DIAGNOSTIC ONLY, not used in
-                          training (see module docstring for why it can't be)
+                          features_buffer (shift the 24-step window, append at the end)
+          plan_positions: (1, 33, 3) predicted (x, y, z) at 33 future timesteps —
+                          parse_mdn means, DIAGNOSTIC ONLY.
         """
         out = self.trunk(
             img=img, big_img=big_img, desire_pulse=desire_pulse,
             traffic_convention=traffic_convention, action_t=action_t,
             features_buffer=features_buffer,
         )
-        if not isinstance(out, (tuple, list)) or len(out) != 3:
+        if isinstance(out, (tuple, list)):
+            if len(out) != 1:
+                raise RuntimeError(f"expected single flattened output, got {len(out)}")
+            out = out[0]
+        out = out.view(out.shape[0], -1)
+        # 2576 = official export (tail: desire_state 8 + zero pad 2, unused);
+        # 2574 = batch-patched export (tools/donkey/patch_onnx_batch.py drops the
+        # constant p_pad so the graph is batch-agnostic; slices below unchanged).
+        if out.shape[1] not in (2576, 2574):
             raise RuntimeError(
-                f"expected 3 outputs (action, hidden_state, plan) from the extracted "
-                f"subgraph, got {type(out)} — check extract_action_subgraph.py's "
-                f"output_names still matches ['mul_48', 'linear_80', 'mul_41']"
+                f"expected flattened output size 2576/2574 (2026 driving_supercombo), "
+                f"got {out.shape[1]} — model may have changed; re-read output_slices."
             )
-        action, hidden_state, plan_raw = out[0], out[1], out[2]
 
-        # plan_raw: (1, 990) = 33 points x 15 values/point, per your reverse-engineered
-        # layout (Plan.POSITION: indices 0:3, VELOCITY: 3:6, ACCELERATION: 6:9,
-        # T_FROM_CURRENT_EULER: 9:12, ORIENTATION_RATE: 12:15). Note this is the RAW
-        # MDN (mixture density network) output — comma decodes it further with parse_mdn()
-        # to get proper means/stds; this is a simplified direct reshape+slice, close
-        # enough for logging/sanity-checking but not a fully faithful decode.
-        plan = plan_raw.view(1, 33, 15)
-        plan_positions = plan[:, :, 0:3]   # (1, 33, 3) — x, y, z per future timestep
+        b = out.shape[0]
+        hidden_state = out[:, self.OUT_SLICES["hidden_state"]]                      # (b, 512)
+        plan_raw = out[:, self.OUT_SLICES["plan"]]                                  # (b, 990)
+        plan = plan_raw.view(b, self.IDX_N, 2 * self.PLAN_WIDTH)                     # (b, 33, 30)
+        plan_mu = plan[:, :, :self.PLAN_WIDTH]                                      # parse_mdn means
+        plan_positions = plan_mu[:, :, 0:3]                                         # (b, 33, 3)
 
+        # comma get_accel_from_plan / get_curvature_from_plan, vectorized over batch.
+        # Note: numpy np.interp is 1-D only, so the small per-sample loop runs only
+        # for the plan-derived action (the trained-head training path uses
+        # hidden_state and never pays this cost).
+        speeds = plan_mu[:, :, 3].cpu().numpy()   # (b, 33)
+        accels = plan_mu[:, :, 6].cpu().numpy()
+        yaws = plan_mu[:, :, 11].cpu().numpy()
+        yaw_rates = plan_mu[:, :, 14].cpu().numpy()
+        action_t_sec = 0.05  # DT_MDL (20 Hz)
+        v_ego = max(0.0, self.MIN_SPEED)  # McQueen: near-zero speeds -> clamp, comma MIN_SPEED=1.0
+
+        action = torch.zeros(b, 4, dtype=hidden_state.dtype, device=hidden_state.device)
+        for k in range(b):
+            v_now, a_now = speeds[k, 0], accels[k, 0]
+            if action_t_sec < self.MIN_STABLE_DELAY:
+                v_target = v_now + (action_t_sec / self.MIN_STABLE_DELAY) * (
+                    np.interp(self.MIN_STABLE_DELAY, self.T_IDXS, speeds[k]) - v_now)
+            else:
+                v_target = np.interp(action_t_sec, self.T_IDXS, speeds[k])
+            a_target = 2.0 * (v_target - v_now) / action_t_sec - a_now
+
+            if action_t_sec < self.MIN_STABLE_DELAY:
+                psi_target = (action_t_sec / self.MIN_STABLE_DELAY) * np.interp(
+                    self.MIN_STABLE_DELAY, self.T_IDXS, yaws[k])
+            else:
+                psi_target = np.interp(action_t_sec, self.T_IDXS, yaws[k])
+            psi_rate = yaw_rates[k, 0]
+            curv = 2.0 * psi_target / (v_ego * action_t_sec) - psi_rate / v_ego
+
+            action[k, 0] = curv
+            action[k, 1] = a_target
         return action, hidden_state, plan_positions
 
 

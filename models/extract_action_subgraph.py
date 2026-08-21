@@ -14,18 +14,19 @@ def main():
         input_path=args.onnx,
         output_path=args.out,
         input_names=["img", "big_img", "desire_pulse", "traffic_convention", "action_t", "features_buffer"],
-        output_names=["mul_48", "linear_80", "mul_41"],
+        output_names=["outputs"],
     )
 
     sub = onnx.load(args.out)
-    print(f"extracted subgraph: {len(sub.graph.node)} nodes (down from 874), "
+    print(f"extracted subgraph: {len(sub.graph.node)} nodes, "
           f"{len(sub.graph.initializer)} initializers")
-    print("Note: adding mul_41 (plan) pulls in the entire off_policy_model transformer "
-          "branch — bigger than the action-only subgraph, but still far smaller than "
-          "the full 874-node model since point_policy (lanes/road_edges/etc) is still cut.")
+    print("NOTE 2026-08-17: the original mul_48/linear_80/mul_41 output names were the")
+    print("previous agent's UNVERIFIED contract — no comma export ever had them (verified")
+    print("against v0.8.11/v0.8.16-era/v0.9.4/2026-master exports: all are new-API, and the")
+    print("2026 master driving_supercombo has NO action head; control is plan-derived).")
+    print("This extraction is now an identity re-export: same 6 inputs in, single 'outputs'")
+    print("tensor out — the pipeline uses the FULL model via action_adapter.FrozenActionModel.")
     print(f"saved -> {args.out}")
-    print("\nRun convert_and_verify.py against THIS file next, not the full one —"
-          " conversion + parity-checking will be much faster with a fraction of the graph.")
 
 
 if __name__ == "__main__":
