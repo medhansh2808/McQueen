@@ -1,8 +1,0 @@
-name: mcqueen-ml
-channels:
-  - conda-forge
-dependencies:
-  - python=3.12
-  - pip
-  - ffmpeg=7.1.1
-prefix: /home/kartik/miniforge3/envs/mcqueen-ml

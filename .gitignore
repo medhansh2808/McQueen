@@ -75,6 +75,12 @@ context stuff for understanding the mcqueen project/
 
 # --- 2026-08-16 purge: keep these LOCAL only, never on GitHub ---
 .mcqueen/
+.opencode/
+.freebuff/
+.suprmind/
+
+# host-specific realtime config (per-host values; only config.env.example is tracked)
+realtime/config.env
 docs/AUDIT_*.md
 docs/ERROR_LOG_*.md
 docs/evidence/
