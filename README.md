@@ -83,7 +83,7 @@ This repository is developed across two long-lived branches:
 
 | Branch | Purpose |
 |--------|---------|
-| `main` | Source of truth for project documentation and dependency manifests (`pyproject.toml`, `uv.lock`, `requirements.txt`). Manifest and dependency changes are introduced here first. |
-| `jetson-nano` | Device (deployment) branch carrying the full runtime executed on the car — the edge autonomy stack (`edge/`), realtime inference (`realtime/`), `mcqueen_ml/`, `models/`, and the Android controller (`apps/android/Kachow`). |
+| `main` | Original project history and source of truth: the jetson + realtime architecture (`realtime/`, `models/`, `deploy/`), documentation, and dependency manifests (`pyproject.toml`, `uv.lock`, `requirements.txt`). |
+| `jetson-nano` | Active device (deployment) branch and the repository's default: carries the runtime executed on the car — the edge autonomy stack (`edge/`), realtime inference (`realtime/`), `mcqueen_ml/`, `models/`, and the Android controller (`apps/android/Kachow`). |
 
-Dependency and manifest updates are propagated from `main` into `jetson-nano`; runtime and device code is developed on `jetson-nano` and merged back into `main` once stable.
+Development happens on `jetson-nano`; `main` preserves the original history alongside documentation and dependency manifests.
