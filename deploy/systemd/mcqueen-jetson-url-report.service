@@ -1,0 +1,12 @@
+[Unit]
+Description=Report Jetson tunnel URL to RTX at boot
+After=mcqueen-jetson-ssh-tunnel.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=sravjti
+ExecStart=/var/tmp/mcqueen-sravjti/report_tunnel_url.sh
+
+[Install]
+WantedBy=multi-user.target

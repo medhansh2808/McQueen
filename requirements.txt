@@ -1,0 +1,20 @@
+# McQueen runtime dependencies
+#
+# Edge (Jetson Nano, Python 3.6+). NOTE: the Jetson also needs system packages
+# that pip cannot install: GStreamer + PyGObject (python3-gi), and Jetson.GPIO
+# must be installed with sudo (it is a hardware GPIO driver):
+#   sudo pip install Jetson.GPIO
+Jetson.GPIO>=2.0.17
+numpy>=1.20
+opencv-python-headless>=4.5
+Pillow>=8.0
+
+# Realtime inference (RTX 4090)
+onnxruntime-gpu>=1.14
+websocket-client>=1.4
+aiohttp>=3.8
+
+# Training
+torch>=2.0
+onnx>=1.13
+pandas>=1.3

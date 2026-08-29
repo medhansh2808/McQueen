@@ -1,6 +1,7 @@
 [Unit]
 Description=McQueen Jetson GPIO control service
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -8,7 +9,7 @@ User=sravjti
 WorkingDirectory=/home/sravjti/McQueen
 Environment=PYTHONPATH=/home/sravjti/McQueen
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 -m robot.jetson_nano.mcqueen_edge.app --jetson --servo-left-us 1639 --servo-center-us 1500 --servo-right-us 1250
+ExecStart=/usr/bin/python3 -m robot.jetson_nano.mcqueen_edge.app --jetson --servo-left-us 1750 --servo-center-us 1500 --servo-right-us 1275
 Restart=always
 RestartSec=2
 

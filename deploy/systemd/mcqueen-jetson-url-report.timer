@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry Jetson URL report periodically
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+Unit=mcqueen-jetson-url-report.service
+
+[Install]
+WantedBy=timers.target

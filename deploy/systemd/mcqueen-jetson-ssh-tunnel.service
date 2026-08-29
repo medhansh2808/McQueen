@@ -1,0 +1,13 @@
+[Unit]
+Description=McQueen Jetson SSH reverse tunnel (cloudflared TCP quick tunnel)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=sravjti
+ExecStart=/var/tmp/mcqueen-sravjti/cloudflared tunnel --url tcp://localhost:22 --no-autoupdate --logfile /var/tmp/mcqueen-sravjti/jetson-tunnel.log
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
