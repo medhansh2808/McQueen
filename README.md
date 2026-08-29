@@ -76,3 +76,14 @@ scripts/         setup and run scripts
 ## License
 
 All rights reserved.
+
+## Branch Structure
+
+This repository is developed across two long-lived branches:
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Source of truth for project documentation and dependency manifests (`pyproject.toml`, `uv.lock`, `requirements.txt`). Manifest and dependency changes are introduced here first. |
+| `jetson-nano` | Device (deployment) branch carrying the full runtime executed on the car — the edge autonomy stack (`edge/`), realtime inference (`realtime/`), `mcqueen_ml/`, `models/`, and the Android controller (`apps/android/Kachow`). |
+
+Dependency and manifest updates are propagated from `main` into `jetson-nano`; runtime and device code is developed on `jetson-nano` and merged back into `main` once stable.
