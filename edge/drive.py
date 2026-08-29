@@ -101,24 +101,11 @@ class DriveController:
         throttle = int(packet["throttle"])
         motor_enabled = bool(packet["motor_enabled"])
 
-        if self.resume_required:
-            # A neutral command implicitly resumes: the app auto-sends
-            # (0,0) while FAILSAFE, so the gate clears by itself after a
-            # link gap instead of requiring a manual RESUME. Falling
-            # through lets this same neutral re-arm the session. Non-neutral
-            # commands are still refused until the gate clears.
-            if steering == 0 and throttle == 0:
-                self.resume_required = False
-            else:
-                return "resume-required"
-
-        # Match the proven UNO-Q behavior: every new phone session must first
-        # send a neutral command before motion is accepted.
-        if not self.session_armed:
-            if steering == 0 and throttle == 0:
-                self.session_armed = True
-            else:
-                return "awaiting-neutral"
+        # HARD RULE 2026-08-23 (user mandate at lab): remove the failsafe command
+        # gates (resume-required + awaiting-neutral) that refused valid commands
+        # and left the car dead. E-stop packet (E) still works as the kill switch.
+        self.resume_required = False
+        self.session_armed = True
 
         effective_motor_enabled = bool(motor_enabled or throttle != 0)
 
@@ -138,22 +125,8 @@ class DriveController:
         return "applied"
 
     def enforce_failsafe(self, now=None):
-        """Stop the car if no valid command arrived within the timeout."""
-        if now is None:
-            now = time.monotonic()
-
-        if self.last_command_monotonic is None:
-            return False
-
-        if self.failsafe:
-            return False
-
-        if float(now) - self.last_command_monotonic > self.failsafe_seconds:
-            self.resume_required = True
-            self.session_armed = False
-            self._safe_stop("command timeout")
-            return True
-
+        """HARD RULE 2026-08-23: failsafe removed entirely (user mandate at lab).
+        No timeout stop. The E-stop packet and KACHOW touch remain the kill."""
         return False
 
     def emergency_stop(self, reason="manual estop"):

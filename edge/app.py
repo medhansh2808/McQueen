@@ -16,7 +16,7 @@ class EdgeApp:
         udp_port=5007,
         http_host="0.0.0.0",
         http_port=8080,
-        failsafe_seconds=0.300,
+        failsafe_seconds=0.700,
         enable_recorder=False,
         recorder_root="data/spool",
         camera_device=None,
@@ -155,6 +155,12 @@ def parse_args(argv=None):
         action="store_true",
         help="use real Jetson GPIO/PWM and Jetson-local RGB recorder",
     )
+    parser.add_argument(
+        "--no-record",
+        action="store_true",
+        help="with --jetson: real GPIO/PWM backend but NO camera recorder "
+        "(autonomy mode — the RTP sender owns the camera)",
+    )
     parser.add_argument("--servo-left-us", type=int)
     parser.add_argument("--servo-center-us", type=int)
     parser.add_argument("--servo-right-us", type=int)
@@ -207,7 +213,7 @@ def main(argv=None):
 
     app = EdgeApp(
         backend=backend,
-        enable_recorder=args.jetson,
+        enable_recorder=args.jetson and not args.no_record,
         recorder_root=args.record_root,
         camera_device=args.camera_device,
         encoder_source=build_encoder_source(args),

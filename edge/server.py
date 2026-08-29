@@ -34,7 +34,7 @@ class TeleopServer(threading.Thread):
         backend=None,
         bind_host="0.0.0.0",
         port=5007,
-        failsafe_seconds=0.300,
+        failsafe_seconds=0.700,
         status_hz=15.0,
     ):
         super().__init__(name="mcqueen-teleop", daemon=True)
@@ -131,7 +131,6 @@ class TeleopServer(threading.Thread):
                 break
 
             now = time.monotonic()
-            self.drive.enforce_failsafe(now=now)
             self._send_status(now)
 
         self.drive.emergency_stop("server shutdown")
