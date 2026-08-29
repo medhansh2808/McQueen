@@ -58,7 +58,7 @@ All should end in `PASS`.
 ## Run safely on a laptop
 
 ```bash
-PYTHONPATH="$PWD" python3 -m robot.jetson_nano.mcqueen_edge.app
+PYTHONPATH="$PWD" python3 -m edge.app
 ```
 
 This uses the mock backend and cannot move hardware.
@@ -68,7 +68,7 @@ This uses the mock backend and cannot move hardware.
 After measuring the MG995 calibration:
 
 ```bash
-PYTHONPATH="$PWD" python3 -m robot.jetson_nano.mcqueen_edge.app \
+PYTHONPATH="$PWD" python3 -m edge.app \
   --jetson \
   --servo-left-us <measured> \
   --servo-center-us <measured> \

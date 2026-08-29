@@ -1,11 +1,11 @@
 import unittest
 
 from mcqueen_ml.dataset.schema_v2 import validate_frame
-from robot.jetson_nano.mcqueen_edge.encoder_source import (
+from .encoder_source import (
     NullEncoderSource,
     SyntheticEncoderSource,
 )
-from robot.jetson_nano.mcqueen_edge.record_row import build_frame_row
+from .record_row import build_frame_row
 
 
 DRIVE = {
