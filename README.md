@@ -6,7 +6,7 @@ End-to-end self-driving stack for a 1/10-scale RC car. A Jetson Nano captures th
 
 ### ▶ Demo
 
-*(video coming soon)*
+<video src="media/demo.mp4" controls muted loop width="100%"></video>
 
 </div>
 
